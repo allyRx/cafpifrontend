@@ -11,7 +11,10 @@ import { Dashboard } from "./pages/Dashboard";
 import { Folders } from "./pages/Folders";
 import { Upload } from "./pages/Upload";
 import { Results } from "./pages/Results";
+import { Reports } from "./pages/Reports";
 import { Subscription } from "./pages/Subscription";
+import { Settings } from "./pages/Settings";
+import { Help } from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,7 +61,7 @@ const App = () => (
                 <MainLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<div className="p-6"><h1 className="text-2xl font-bold">Rapports Premium</h1><p>Fonctionnalité premium en développement...</p></div>} />
+              <Route index element={<Reports />} />
             </Route>
             <Route path="/subscription" element={
               <ProtectedRoute>
@@ -72,14 +75,14 @@ const App = () => (
                 <MainLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<div className="p-6"><h1 className="text-2xl font-bold">Paramètres</h1><p>Page de paramètres en développement...</p></div>} />
+              <Route index element={<Settings />} />
             </Route>
             <Route path="/help" element={
               <ProtectedRoute>
                 <MainLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<div className="p-6"><h1 className="text-2xl font-bold">Aide & Support</h1><p>Documentation et support en développement...</p></div>} />
+              <Route index element={<Help />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
