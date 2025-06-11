@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Plus, Folder, FileText, Calendar, MoreVertical } from 'lucide-react';
 import { mockFolders } from '../data/mockData';
 import { useToast } from '../hooks/use-toast';
@@ -129,57 +130,78 @@ export const Folders: React.FC = () => {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {folders.map((folder) => (
-          <Card key={folder.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <Folder className="h-5 w-5 text-blue-500" />
-                  <CardTitle className="text-lg">{folder.name}</CardTitle>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Ouvrir</DropdownMenuItem>
-                    <DropdownMenuItem>Modifier</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">Supprimer</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <CardDescription className="line-clamp-2">
-                {folder.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <FileText className="h-4 w-4" />
-                    <span>{folder.fileCount} fichiers</span>
-                  </div>
-                  {getStatusBadge(folder.status)}
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    Créé le {new Date(folder.createdAt).toLocaleDateString('fr-FR')}
-                  </span>
-                </div>
-                <Button variant="outline" className="w-full">
-                  Ouvrir le dossier
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {folders.length === 0 && (
+      {folders.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Liste des dossiers</CardTitle>
+            <CardDescription>
+              {folders.length} dossier{folders.length > 1 ? 's' : ''} au total
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Fichiers</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Date de création</TableHead>
+                  <TableHead className="w-[70px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {folders.map((folder) => (
+                  <TableRow key={folder.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Folder className="h-4 w-4 text-blue-500" />
+                        <span className="font-medium">{folder.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-muted-foreground max-w-xs truncate">
+                        {folder.description || 'Aucune description'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <FileText className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm">{folder.fileCount}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(folder.status)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {new Date(folder.createdAt).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Ouvrir</DropdownMenuItem>
+                          <DropdownMenuItem>Modifier</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">Supprimer</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : (
         <Card className="p-12 text-center">
           <Folder className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">

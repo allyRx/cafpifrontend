@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { 
   Download, 
   FileText, 
@@ -46,8 +47,8 @@ export const Results: React.FC = () => {
 
   const getFileIcon = (type: string) => {
     return type === 'excel' 
-      ? <FileSpreadsheet className="h-5 w-5 text-green-500" />
-      : <FileText className="h-5 w-5 text-red-500" />;
+      ? <FileSpreadsheet className="h-4 w-4 text-green-500" />
+      : <FileText className="h-4 w-4 text-red-500" />;
   };
 
   const getTypeBadge = (type: string) => {
@@ -144,56 +145,77 @@ export const Results: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Results Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredFiles.map((file) => (
-          <Card key={file.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  {getFileIcon(file.type)}
-                  <CardTitle className="text-base truncate">{file.name}</CardTitle>
-                </div>
-                {getTypeBadge(file.type)}
-              </div>
-              <CardDescription>
-                Créé le {new Date(file.createdAt).toLocaleDateString('fr-FR')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Taille :</span>
-                  <span className="font-medium">{file.size}</span>
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => handleDownload(file)}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Télécharger
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handlePreview(file)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Share className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredFiles.length === 0 && (
+      {/* Results Table */}
+      {filteredFiles.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Fichiers traités</CardTitle>
+            <CardDescription>
+              {filteredFiles.length} fichier{filteredFiles.length > 1 ? 's' : ''} disponible{filteredFiles.length > 1 ? 's' : ''}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fichier</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Taille</TableHead>
+                  <TableHead>Date de création</TableHead>
+                  <TableHead className="w-[140px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredFiles.map((file) => (
+                  <TableRow key={file.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        {getFileIcon(file.type)}
+                        <span className="font-medium">{file.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getTypeBadge(file.type)}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-medium">{file.size}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {new Date(file.createdAt).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleDownload(file)}
+                        >
+                          <Download className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handlePreview(file)}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Share className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : (
         <Card className="p-12 text-center">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
