@@ -1,16 +1,17 @@
-import { Schema, model, Document } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
-interface IUploadedFile extends Document {
-  name: string;
-  type: string;
-  size: number;
-  status: string; // e.g., 'uploaded', 'processing', 'processed', 'failed'
-  userId: Schema.Types.ObjectId;
-  content: Buffer;
-  id: string;
-}
+// Interface IUploadedFile (commented out)
+// interface IUploadedFile extends Document {
+//   name: string;
+//   type: string;
+//   size: number;
+//   status: string;
+//   userId: Schema.Types.ObjectId;
+//   content: Buffer;
+//   id: string;
+// }
 
-const UploadedFileSchema = new Schema<IUploadedFile>({
+const UploadedFileSchema = new Schema({
   name: { type: String, required: true },
   type: { type: String, required: true },
   size: { type: Number, required: true },
@@ -27,4 +28,4 @@ UploadedFileSchema.set('toJSON', {
   virtuals: true,
 });
 
-export default model<IUploadedFile>('UploadedFile', UploadedFileSchema);
+module.exports = model('UploadedFile', UploadedFileSchema);

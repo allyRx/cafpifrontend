@@ -1,7 +1,7 @@
-import { Router, Response } from 'express';
-import multer from 'multer';
-import UploadedFile from '../models/UploadedFile';
-import { protect, AuthenticatedRequest } from '../middleware/auth.middleware';
+const { Router } = require('express');
+const multer = require('multer');
+const UploadedFile = require('../models/UploadedFile.js'); // .js
+const { protect } = require('../middleware/auth.middleware.js'); // .js
 
 const router = Router();
 
@@ -12,7 +12,7 @@ const upload = multer({ storage: storage });
 // @route   POST api/upload
 // @desc    Upload a file
 // @access  Private
-router.post('/', protect, upload.single('file'), async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', protect, upload.single('file'), async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -32,16 +32,15 @@ router.post('/', protect, upload.single('file'), async (req: AuthenticatedReques
       size,
       content: buffer,
       userId,
-      status: 'uploaded', // Default status
+      status: 'uploaded',
     });
 
     const uploadedFile = await newUploadedFile.save();
-    // Exclude content buffer from the response for brevity and security
-    const responseFile = uploadedFile.toJSON();
-    delete responseFile.content;
+    const responseFile = uploadedFile.toJSON(); // Mongoose .toJSON() virtuals work
+    delete responseFile.content; // Still good to explicitly remove if not done by toJSON
 
     res.status(201).json(responseFile);
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -50,7 +49,7 @@ router.post('/', protect, upload.single('file'), async (req: AuthenticatedReques
 // @route   GET api/upload
 // @desc    Get all uploaded files for the authenticated user
 // @access  Private
-router.get('/', protect, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', protect, async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -58,10 +57,9 @@ router.get('/', protect, async (req: AuthenticatedRequest, res: Response) => {
   }
 
   try {
-    // Exclude 'content' field from the results for performance
     const files = await UploadedFile.find({ userId }).select('-content');
     res.json(files);
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -70,7 +68,7 @@ router.get('/', protect, async (req: AuthenticatedRequest, res: Response) => {
 // @route   GET api/upload/:id
 // @desc    Get a specific uploaded file by ID (metadata only)
 // @access  Private
-router.get('/:id', protect, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:id', protect, async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -78,14 +76,13 @@ router.get('/:id', protect, async (req: AuthenticatedRequest, res: Response) => 
   }
 
   try {
-    // Exclude 'content' field
     const file = await UploadedFile.findOne({ _id: req.params.id, userId }).select('-content');
 
     if (!file) {
       return res.status(404).json({ msg: 'File not found or not authorized' });
     }
     res.json(file);
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'File not found' });
@@ -97,7 +94,7 @@ router.get('/:id', protect, async (req: AuthenticatedRequest, res: Response) => 
 // @route   DELETE api/upload/:id
 // @desc    Delete an uploaded file record
 // @access  Private
-router.delete('/:id', protect, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', protect, async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -113,7 +110,7 @@ router.delete('/:id', protect, async (req: AuthenticatedRequest, res: Response) 
 
     await file.deleteOne();
     res.json({ msg: 'Uploaded file record removed' });
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'File not found' });
@@ -122,4 +119,4 @@ router.delete('/:id', protect, async (req: AuthenticatedRequest, res: Response) 
   }
 });
 
-export default router;
+module.exports = router;

@@ -1,7 +1,9 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
 // Load environment variables from Backend/.env
+// The path './.env' assumes that the script is run from the 'Backend' directory.
+// If running `node src/index.js` from within the `Backend` directory, this path should be correct.
 dotenv.config({ path: './.env' });
 
 const connectDB = async () => {
@@ -12,11 +14,11 @@ const connectDB = async () => {
     }
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected...');
-  } catch (err: any) {
+  } catch (err) {
     console.error('MongoDB connection error:', err.message);
     // Exit process with failure
     process.exit(1);
   }
 };
 
-export default connectDB;
+module.exports = connectDB;

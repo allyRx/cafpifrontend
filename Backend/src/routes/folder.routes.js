@@ -1,8 +1,8 @@
-import { Router, Response } from 'express';
-import { body } from 'express-validator';
-import Folder from '../models/Folder';
-import { protect, AuthenticatedRequest } from '../middleware/auth.middleware';
-import { handleValidationErrors } from '../middleware/validation.middleware';
+const { Router } = require('express');
+const { body } = require('express-validator');
+const Folder = require('../models/Folder.js'); // .js
+const { protect } = require('../middleware/auth.middleware.js'); // .js, AuthenticatedRequest removed
+const { handleValidationErrors } = require('../middleware/validation.middleware.js'); // .js
 
 const router = Router();
 
@@ -11,38 +11,37 @@ const router = Router();
 // @access  Private
 router.post(
   '/',
-  protect, // Auth middleware should come before validation if it populates req.user needed by validation/logic
+  protect,
   [body('name').notEmpty().withMessage('Folder name is required')],
   handleValidationErrors,
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req, res) => {
     const { name, description } = req.body;
-    const userId = req.user?.id; // Assuming protect middleware adds user to req
+    const userId = req.user?.id;
 
     if (!userId) {
-      // This check might be redundant if protect middleware handles unauthenticated users
-      return res.status(401).json({ msg: 'User not authenticated' });
+      return res.status(401).json({ msg: 'User not authenticated (should be handled by protect middleware)' });
     }
 
     try {
       const newFolder = new Folder({
-      name,
-      description,
-      userId,
-      // fileCount and status will use defaults from schema
-    });
+        name,
+        description,
+        userId,
+      });
 
-    const folder = await newFolder.save();
-    res.status(201).json(folder);
-  } catch (err: any) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+      const folder = await newFolder.save();
+      res.status(201).json(folder);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
   }
-});
+);
 
 // @route   GET api/folders
 // @desc    Get all folders for the authenticated user
 // @access  Private
-router.get('/', protect, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', protect, async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -52,7 +51,7 @@ router.get('/', protect, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const folders = await Folder.find({ userId });
     res.json(folders);
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -61,7 +60,7 @@ router.get('/', protect, async (req: AuthenticatedRequest, res: Response) => {
 // @route   GET api/folders/:id
 // @desc    Get a specific folder by ID
 // @access  Private
-router.get('/:id', protect, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:id', protect, async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -75,7 +74,7 @@ router.get('/:id', protect, async (req: AuthenticatedRequest, res: Response) => 
       return res.status(404).json({ msg: 'Folder not found or not authorized' });
     }
     res.json(folder);
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Folder not found' });
@@ -87,7 +86,7 @@ router.get('/:id', protect, async (req: AuthenticatedRequest, res: Response) => 
 // @route   PUT api/folders/:id
 // @desc    Update folder details
 // @access  Private
-router.put('/:id', protect, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', protect, async (req, res) => { // Added validation for name and description if needed
   const { name, description } = req.body;
   const userId = req.user?.id;
 
@@ -104,11 +103,10 @@ router.put('/:id', protect, async (req: AuthenticatedRequest, res: Response) => 
 
     if (name) folder.name = name;
     if (description !== undefined) folder.description = description;
-    // You might want to update other fields like status if applicable
 
     folder = await folder.save();
     res.json(folder);
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Folder not found' });
@@ -120,7 +118,7 @@ router.put('/:id', protect, async (req: AuthenticatedRequest, res: Response) => 
 // @route   DELETE api/folders/:id
 // @desc    Delete a folder
 // @access  Private
-router.delete('/:id', protect, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', protect, async (req, res) => {
   const userId = req.user?.id;
 
   if (!userId) {
@@ -133,13 +131,9 @@ router.delete('/:id', protect, async (req: AuthenticatedRequest, res: Response) 
     if (!folder) {
       return res.status(404).json({ msg: 'Folder not found or not authorized' });
     }
-
-    // In a real app, consider what to do with files and jobs associated with this folder.
-    // For now, just deleting the folder document.
-    await folder.deleteOne(); // or folder.remove() for older mongoose versions
-
+    await folder.deleteOne();
     res.json({ msg: 'Folder removed' });
-  } catch (err: any) {
+  } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Folder not found' });
@@ -148,4 +142,4 @@ router.delete('/:id', protect, async (req: AuthenticatedRequest, res: Response) 
   }
 });
 
-export default router;
+module.exports = router;
