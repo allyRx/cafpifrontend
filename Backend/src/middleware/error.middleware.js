@@ -1,10 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+// Interface ErrorResponse (commented out)
+// interface ErrorResponse extends Error {
+//   statusCode?: number;
+// }
 
-interface ErrorResponse extends Error {
-  statusCode?: number;
-}
-
-const errorHandler = (err: ErrorResponse, req: Request, res: Response, next: NextFunction) => {
+const errorHandler = (err, req, res, next) => {
   console.error(err.stack || err.message); // Log the error stack for debugging
 
   const statusCode = err.statusCode || 500;
@@ -19,4 +18,5 @@ const errorHandler = (err: ErrorResponse, req: Request, res: Response, next: Nex
   });
 };
 
-export { errorHandler, ErrorResponse };
+// ErrorResponse interface is not exported.
+module.exports = { errorHandler };

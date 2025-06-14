@@ -1,16 +1,17 @@
-import { Schema, model, Document } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
-interface IFolder extends Document {
-  name: string;
-  description?: string;
-  createdAt: Date;
-  fileCount: number;
-  status: string; // e.g., 'pending', 'processing', 'completed', 'failed'
-  userId: Schema.Types.ObjectId;
-  id: string;
-}
+// Interface IFolder (commented out)
+// interface IFolder extends Document {
+//   name: string;
+//   description?: string;
+//   createdAt: Date;
+//   fileCount: number;
+//   status: string;
+//   userId: Schema.Types.ObjectId;
+//   id: string;
+// }
 
-const FolderSchema = new Schema<IFolder>({
+const FolderSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String },
   createdAt: { type: Date, default: Date.now },
@@ -27,4 +28,4 @@ FolderSchema.set('toJSON', {
   virtuals: true,
 });
 
-export default model<IFolder>('Folder', FolderSchema);
+module.exports = model('Folder', FolderSchema);
