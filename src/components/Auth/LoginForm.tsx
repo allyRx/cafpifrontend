@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Loader2, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Added Link
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('demo@example.com');
@@ -78,6 +78,13 @@ export const LoginForm: React.FC = () => {
               <p className="text-sm text-blue-800 font-medium mb-2">Compte de démonstration :</p>
               <p className="text-sm text-blue-700">Email: demo@example.com</p>
               <p className="text-sm text-blue-700">Mot de passe: demo123</p>
+            </div>
+
+            <div className="mt-6 text-center text-sm">
+              Don't have an account?{' '}
+              <Link to="/register" className="font-medium text-primary hover:underline">
+                Sign Up
+              </Link>
             </div>
           </CardContent>
         </Card>

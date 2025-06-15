@@ -10,6 +10,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   updateSubscription: (plan: 'free' | 'basic' | 'premium') => void;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,6 +90,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    setIsLoading(true);
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const registerUrl = `${apiBaseUrl}/auth/register`;
+
+    try {
+      const response = await fetch(registerUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }), // Assuming backend expects 'name'
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.id) { // Backend register currently returns the user object on success
+        toast({
+          title: "Compte créé avec succès!",
+          description: "Vous pouvez maintenant vous connecter.",
+        });
+        setIsLoading(false);
+        return { success: true, message: "Registration successful. Please log in." };
+      } else {
+        // Handle errors from express-validator (data.errors) or other backend errors (data.error or data.msg)
+        const errorMessage = data.error || data.errors?.[0]?.msg || data.message || "Impossible de créer le compte.";
+        toast({
+          title: "Erreur d'inscription",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return { success: false, message: errorMessage };
+      }
+    } catch (error) {
+      console.error('Register API call failed:', error);
+      toast({
+        title: "Erreur d'inscription",
+        description: "Impossible de se connecter au serveur. Veuillez réessayer plus tard.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return { success: false, message: 'Network error or server unreachable' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('authUser');
@@ -122,7 +169,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     isLoading,
-    updateSubscription
+    updateSubscription,
+    register, // Added register to context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

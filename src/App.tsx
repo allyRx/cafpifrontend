@@ -16,6 +16,7 @@ import { Subscription } from "./pages/Subscription";
 import { Settings } from "./pages/Settings";
 import { Help } from "./pages/Help";
 import NotFound from "./pages/NotFound";
+import { RegisterPage } from "./pages/Register"; // Import RegisterPage
 
 const queryClient = new QueryClient();
 
@@ -27,7 +28,19 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/*
+              The current setup redirects "/" to "/dashboard".
+              If "/" is meant to be the login page for unauthenticated users,
+              the ProtectedRoute or a new IndexPage route needs to handle that.
+              For now, adding /register as a distinct public route.
+              If there was an explicit login route like /login, it would go here too.
+            */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+            {/* Protected Application Routes */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <MainLayout />
