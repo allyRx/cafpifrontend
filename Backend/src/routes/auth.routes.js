@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { body } = require('express-validator');
 const User = require('../models/User.js'); // Adjusted to .js
 const { handleValidationErrors } = require('../middleware/validation.middleware.js'); // Adjusted to .js
+// const jwt = require('jsonwebtoken'); // Commented out due to install issues
 
 const router = Router();
 
@@ -71,7 +72,26 @@ router.post(
       if (!isMatch) {
         return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
       }
-      res.json(user); // user.toJSON() is called by Express
+
+    // const payload = {
+    //   userId: user.id, // or user._id.toString()
+    //   email: user.email,
+    // };
+
+    // // Ensure JWT_SECRET is loaded
+    // if (!process.env.JWT_SECRET) {
+    //   console.error('FATAL ERROR: JWT_SECRET is not defined.');
+    //   return res.status(500).send('Server error (JWT_SECRET not configured)');
+    // }
+
+    // const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+      success: true,
+      message: 'Login successful (JWT generation skipped due to install issues)',
+      // token: token, // Token generation skipped
+      user: { id: user.id, name: user.name, email: user.email, subscription: user.subscription },
+    });
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server error');

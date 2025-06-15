@@ -1,17 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useEffect
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+// Folder type will be imported by folderService if defined in ../types
+// If not, we might need to import it here or define a local one.
+// import { Folder as FolderType } from '../types'; // Assuming this path is correct
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Plus, Folder, FileText, Calendar, MoreVertical } from 'lucide-react';
-import { mockFolders } from '../data/mockData';
+import { Plus, Folder as FolderIcon, FileText, Calendar, MoreVertical } from 'lucide-react'; // Renamed Folder to FolderIcon to avoid conflict
+// import { mockFolders } from '../data/mockData'; // Removed mock data import
+import { getFolders, createFolder } from '../services/folderService'; // Import service functions
+import { Folder as FolderType } from '../types'; // Assuming Folder type is available from here for setFolders
 import { useToast } from '../hooks/use-toast';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -19,12 +24,28 @@ import {
 } from '../components/ui/dropdown-menu';
 
 export const Folders: React.FC = () => {
-  const [folders, setFolders] = useState(mockFolders);
+  const [folders, setFolders] = useState<FolderType[]>([]); // Initialize with empty array and type
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newFolder, setNewFolder] = useState({ name: '', description: '' });
   const { toast } = useToast();
 
-  const handleCreateFolder = () => {
+  useEffect(() => {
+    const loadFolders = async () => {
+      try {
+        const fetchedFolders = await getFolders();
+        setFolders(fetchedFolders);
+      } catch (error) {
+        toast({
+          title: "Erreur de chargement",
+          description: (error as Error).message || "Impossible de charger les dossiers.",
+          variant: "destructive",
+        });
+      }
+    };
+    loadFolders();
+  }, [toast]); // Added toast to dependency array
+
+  const handleCreateFolder = async () => { // Make it async
     if (!newFolder.name.trim()) {
       toast({
         title: "Erreur",
@@ -34,23 +55,24 @@ export const Folders: React.FC = () => {
       return;
     }
 
-    const folder = {
-      id: Date.now().toString(),
-      name: newFolder.name,
-      description: newFolder.description,
-      createdAt: new Date().toISOString(),
-      fileCount: 0,
-      status: 'active' as const
-    };
+    try {
+      // Assuming backend returns the full folder object including id, createdAt etc.
+      const created = await createFolder({ name: newFolder.name, description: newFolder.description });
+      setFolders(prevFolders => [created, ...prevFolders]); // Add to the start of the list
+      setNewFolder({ name: '', description: '' });
+      setIsCreateDialogOpen(false);
 
-    setFolders([folder, ...folders]);
-    setNewFolder({ name: '', description: '' });
-    setIsCreateDialogOpen(false);
-    
-    toast({
-      title: "Dossier créé",
-      description: `Le dossier "${folder.name}" a été créé avec succès`,
-    });
+      toast({
+        title: "Dossier créé",
+        description: `Le dossier "${created.name}" a été créé avec succès`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur de création",
+        description: (error as Error).message || "Impossible de créer le dossier.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -155,7 +177,7 @@ export const Folders: React.FC = () => {
                   <TableRow key={folder.id}>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Folder className="h-4 w-4 text-blue-500" />
+                        <FolderIcon className="h-4 w-4 text-blue-500" />
                         <span className="font-medium">{folder.name}</span>
                       </div>
                     </TableCell>
@@ -203,7 +225,7 @@ export const Folders: React.FC = () => {
         </Card>
       ) : (
         <Card className="p-12 text-center">
-          <Folder className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <FolderIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Aucun dossier pour le moment
           </h3>
