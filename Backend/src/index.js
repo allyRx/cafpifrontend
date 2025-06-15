@@ -24,7 +24,7 @@ app.options('*', cors()); // Enable pre-flight requests for all routes
 app.use(express.json()); // Used to parse JSON bodies
 
 // Define Routes
-app.get('/', (req, res) => res.send('API Running!'));
+app.get('/', (req, res) => res.send('API Running!')); // This simple route remains
 app.use('/api/auth', authRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/upload', uploadRoutes);
