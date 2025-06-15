@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react'; // Added useEffect
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
@@ -12,17 +12,36 @@ import {
   X, 
   CheckCircle,
   AlertCircle,
-  Folder
+  Folder as FolderIconLucide // Renamed to avoid conflict with FolderType
 } from 'lucide-react';
-import { mockFolders } from '../data/mockData';
+// import { mockFolders } from '../data/mockData'; // Removed
 import { useToast } from '../hooks/use-toast';
-import { UploadedFile } from '../types';
+import { UploadedFile, Folder as FolderType } from '../types'; // Added FolderType
+import { getFolders } from '../services/folderService'; // Added
+import { uploadFile } from '../services/uploadService'; // Added
 
 export const Upload: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [folders, setFolders] = useState<FolderType[]>([]); // Added state for folders
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadFolders = async () => {
+      try {
+        const fetchedFolders = await getFolders();
+        setFolders(fetchedFolders);
+      } catch (error) {
+        toast({
+          title: "Erreur de chargement des dossiers",
+          description: (error as Error).message || "Impossible de charger les dossiers.",
+          variant: "destructive",
+        });
+      }
+    };
+    loadFolders();
+  }, [toast]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -48,7 +67,7 @@ export const Upload: React.FC = () => {
     }
   };
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = (rawFiles: File[]) => {
     if (!selectedFolder) {
       toast({
         title: "Dossier requis",
@@ -58,35 +77,37 @@ export const Upload: React.FC = () => {
       return;
     }
 
-    const newFiles: UploadedFile[] = files.map(file => ({
-      id: Date.now().toString() + Math.random(),
+    const newFileEntries: UploadedFile[] = rawFiles.map(file => ({
+      id: `temp-${Date.now().toString()}-${Math.random()}`, // Temporary ID
       name: file.name,
       type: file.type,
       size: file.size,
-      status: 'uploaded',
-      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      status: 'uploading', // Initial status
+      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
     }));
 
-    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setUploadedFiles(prev => [...prev, ...newFileEntries]);
 
-    // Simuler le traitement
-    newFiles.forEach(file => {
-      setTimeout(() => {
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === file.id ? { ...f, status: 'processing' } : f)
+    newFileEntries.forEach(async (fileEntry) => {
+      const originalFile = rawFiles.find(f => f.name === fileEntry.name && f.size === fileEntry.size);
+      if (!originalFile) return;
+
+      try {
+        // Note: uploadFile service expects folderId, ensure selectedFolder holds the ID.
+        const backendFile = await uploadFile(originalFile, selectedFolder);
+        setUploadedFiles(prev =>
+          prev.map(f => (f.id === fileEntry.id ? { ...backendFile, preview: f.preview } : f))
         );
-      }, 1000);
-
-      setTimeout(() => {
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === file.id ? { ...f, status: 'completed' } : f)
+      } catch (error) {
+        setUploadedFiles(prev =>
+          prev.map(f => (f.id === fileEntry.id ? { ...f, status: 'error' } : f))
         );
-      }, 3000);
-    });
-
-    toast({
-      title: "Fichiers téléversés",
-      description: `${files.length} fichier(s) ajouté(s) pour traitement`,
+        toast({
+          title: `Erreur téléversement: ${fileEntry.name}`,
+          description: (error as Error).message,
+          variant: "destructive",
+        });
+      }
     });
   };
 
@@ -134,7 +155,7 @@ export const Upload: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Folder className="h-5 w-5" />
+            <FolderIconLucide className="h-5 w-5" />
             <span>Dossier de destination</span>
           </CardTitle>
           <CardDescription>
@@ -147,7 +168,8 @@ export const Upload: React.FC = () => {
               <SelectValue placeholder="Choisir un dossier..." />
             </SelectTrigger>
             <SelectContent>
-              {mockFolders.map(folder => (
+              {folders.length === 0 && <SelectItem value="loading" disabled>Chargement des dossiers...</SelectItem>}
+              {folders.map(folder => (
                 <SelectItem key={folder.id} value={folder.id}>
                   {folder.name}
                 </SelectItem>

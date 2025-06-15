@@ -23,6 +23,9 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Log the API base URL to confirm it's accessible
+  console.log('API Base URL from AuthProvider:', import.meta.env.VITE_API_BASE_URL);
+
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -38,28 +41,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Simulation d'un appel API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (email === 'demo@example.com' && password === 'demo123') {
-      setUser(mockUser);
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const loginUrl = `${apiBaseUrl}/auth/login`;
+
+    try {
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Assuming data.user contains the user info and data.token exists if needed later
+        // The backend currently sends: { success: true, message: '...', token: '...', user: { id, name, email, subscription }}
+        // Or for skipped JWT: { success: true, message: '... (JWT skipped)', user: { id, name, email, subscription }}
+        setUser(data.user);
+        localStorage.setItem('authUser', JSON.stringify(data.user));
+        // localStorage.setItem('authToken', data.token); // If token is to be stored
+        toast({
+          title: "Connexion réussie",
+          description: data.message || "Bienvenue dans votre espace de traitement documentaire!",
+        });
+        setIsLoading(false);
+        return true;
+      } else {
+        toast({
+          title: "Erreur de connexion",
+          description: data.error || data.errors?.[0]?.msg || "Email ou mot de passe incorrect",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Login API call failed:', error);
       toast({
-        title: "Connexion réussie",
-        description: "Bienvenue dans votre espace de traitement documentaire",
+        title: "Erreur de connexion",
+        description: "Impossible de se connecter au serveur. Veuillez réessayer plus tard.",
+        variant: "destructive",
       });
       setIsLoading(false);
-      return true;
+      return false;
     }
-    
-    toast({
-      title: "Erreur de connexion",
-      description: "Email ou mot de passe incorrect",
-      variant: "destructive",
-    });
-    setIsLoading(false);
-    return false;
   };
 
   const logout = () => {

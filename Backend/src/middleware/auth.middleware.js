@@ -1,21 +1,16 @@
-// Define a custom property 'user' on the Request object (commented out)
-// interface AuthenticatedRequest extends Request {
-//   user?: {
-//     id: string;
-//   };
-// }
-
-// Placeholder User ID - replace with a valid ObjectId string if testing against a real DB
-const MOCK_USER_ID = '60f7e2b5c1e2a3001f8e4d5c'; // Example ObjectId
+// const jwt = require('jsonwebtoken'); // Commented out
+// const User = require('../models/User.js'); // Commented out
 
 const protect = (req, res, next) => {
-  // In a real application, you would verify a token (e.g., JWT)
-  // and then fetch the user from the database.
-  // For this placeholder, we're just attaching a mock user ID.
-  req.user = { id: MOCK_USER_ID };
-  console.log(`Mock user ${req.user.id} attached by placeholder middleware.`);
+  // Placeholder: Simulate user authentication
+  // console.warn('Auth Middleware: JWT verification skipped, using mock user due to jsonwebtoken install issues.');
+  // Using a consistent mock user ID that was used in earlier placeholder versions.
+  req.user = {
+    id: '60f7e2b5c1e2a3001f8e4d5c', // Example ObjectId string
+    email: 'mock@example.com',
+    name: 'Mock User'
+  };
   next();
 };
 
-// AuthenticatedRequest interface is not exported as it's a TypeScript feature.
 module.exports = { protect };
