@@ -19,7 +19,8 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors()); // Enable CORS for all routes
+app.options('*', cors()); // Enable pre-flight requests for all routes
 app.use(express.json()); // Used to parse JSON bodies
 
 // Define Routes
