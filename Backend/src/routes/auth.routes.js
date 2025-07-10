@@ -9,6 +9,7 @@ const router = Router();
 // @route   POST api/auth/register
 // @desc    Register user
 // @access  Public
+console.log("Defining route in auth.routes.js: POST /register");
 router.post(
   '/register',
   [
@@ -46,6 +47,7 @@ router.post(
 // @route   POST api/auth/login
 // @desc    Authenticate user & get token (placeholder)
 // @access  Public
+console.log("Defining route in auth.routes.js: POST /login");
 router.post(
   '/login',
   [
