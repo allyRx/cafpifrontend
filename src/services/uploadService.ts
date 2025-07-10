@@ -1,7 +1,7 @@
 // src/services/uploadService.ts
 import { UploadedFile as UploadedFileType } from '../types'; // Assuming type is available
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Commented out for mock
 
 // Placeholder for adding auth headers if/when JWT is implemented
 // const getAuthHeaders = () => {
@@ -10,28 +10,23 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // };
 
 export const uploadFile = async (file: File, folderId: string): Promise<UploadedFileType> => {
-  const formData = new FormData();
-  formData.append('file', file); // 'file' should match multer field name in backend
+  // console.log(`uploadService: Mock uploading file "${file.name}" to folderId "${folderId}"`);
 
-  // As per prompt, including folderId. Backend /api/upload currently doesn't store this
-  // in UploadedFile model. This might be for a different purpose or require backend changes.
-  formData.append('folderId', folderId);
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate 1.5 seconds delay
 
-  const response = await fetch(`${API_BASE_URL}/upload`, {
-    method: 'POST',
-    // headers: { ...getAuthHeaders() }, // Auth headers if needed, omit for FormData if backend handles it
-    // For FormData, Content-Type is set automatically by the browser with boundary.
-    // Explicitly setting 'Content-Type': 'multipart/form-data' can sometimes cause issues if boundary is missing.
-    body: formData,
-  });
+  const newMockUploadedFile: UploadedFileType = {
+    id: `mock-${Date.now().toString()}-${Math.random().toString(36).substring(2, 9)}`,
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    status: 'completed', // Or 'uploaded', assuming backend status for a newly uploaded file
+    // folderId: folderId, // Include if your UploadedFileType in types.ts supports it
+    // downloadUrl: '#',    // Placeholder if needed by the type
+    createdAt: new Date().toISOString(), // Add if needed by the type
+    // preview: undefined, // Preview is usually a frontend-only concern, not part of backend model
+  };
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'File upload failed' }));
-    throw new Error(errorData.error || errorData.errors?.[0]?.msg || errorData.message || 'File upload failed');
-  }
-  // The backend for POST /api/upload returns the created UploadedFile object directly
-  // (after excluding 'content' buffer in its response)
-  const data = await response.json();
-  // The service expects the backend to return the file object, not nested like { uploadedFile: data }
-  return data;
+  // console.log("uploadService: Mock file created:", newMockUploadedFile);
+  return Promise.resolve(newMockUploadedFile);
 };

@@ -2,11 +2,27 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db.js'); // .js
-const authRoutes = require('./routes/auth.routes.js'); // .js
-const folderRoutes = require('./routes/folder.routes.js'); // .js
-const uploadRoutes = require('./routes/upload.routes.js'); // .js
-const jobRoutes = require('./routes/job.routes.js'); // .js
-const resultRoutes = require('./routes/result.routes.js'); // .js
+
+console.log("Requiring route module: ./routes/auth.routes.js");
+const authRoutes = require('./routes/auth.routes.js');
+console.log("Successfully required ./routes/auth.routes.js:", authRoutes);
+
+console.log("Requiring route module: ./routes/folder.routes.js");
+const folderRoutes = require('./routes/folder.routes.js');
+console.log("Successfully required ./routes/folder.routes.js:", folderRoutes);
+
+console.log("Requiring route module: ./routes/upload.routes.js");
+const uploadRoutes = require('./routes/upload.routes.js');
+console.log("Successfully required ./routes/upload.routes.js:", uploadRoutes);
+
+console.log("Requiring route module: ./routes/job.routes.js");
+const jobRoutes = require('./routes/job.routes.js');
+console.log("Successfully required ./routes/job.routes.js:", jobRoutes);
+
+console.log("Requiring route module: ./routes/result.routes.js");
+const resultRoutes = require('./routes/result.routes.js');
+console.log("Successfully required ./routes/result.routes.js:", resultRoutes);
+
 const { errorHandler } = require('./middleware/error.middleware.js'); // .js
 
 // Load environment variables from Backend/.env
@@ -25,11 +41,26 @@ app.use(express.json()); // Used to parse JSON bodies
 
 // Define Routes
 app.get('/', (req, res) => res.send('API Running!')); // This simple route remains
+
+console.log("Attempting app.use for /api/auth");
 app.use('/api/auth', authRoutes);
+console.log("Completed app.use for /api/auth");
+
+console.log("Attempting app.use for /api/folders");
 app.use('/api/folders', folderRoutes);
+console.log("Completed app.use for /api/folders");
+
+console.log("Attempting app.use for /api/upload");
 app.use('/api/upload', uploadRoutes);
+console.log("Completed app.use for /api/upload");
+
+console.log("Attempting app.use for /api/jobs");
 app.use('/api/jobs', jobRoutes);
+console.log("Completed app.use for /api/jobs");
+
+console.log("Attempting app.use for /api/results");
 app.use('/api/results', resultRoutes);
+console.log("Completed app.use for /api/results");
 
 // Error Handling Middleware - Should be last
 app.use(errorHandler);

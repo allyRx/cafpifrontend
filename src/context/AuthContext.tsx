@@ -24,8 +24,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Log the API base URL to confirm it's accessible
-  console.log('API Base URL from AuthProvider:', import.meta.env.VITE_API_BASE_URL);
+  // console.log('API Base URL from AuthProvider:', import.meta.env.VITE_API_BASE_URL); // Commented out
 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,47 +41,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    const loginUrl = `${apiBaseUrl}/auth/login`;
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    try {
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Assuming data.user contains the user info and data.token exists if needed later
-        // The backend currently sends: { success: true, message: '...', token: '...', user: { id, name, email, subscription }}
-        // Or for skipped JWT: { success: true, message: '... (JWT skipped)', user: { id, name, email, subscription }}
-        setUser(data.user);
-        localStorage.setItem('authUser', JSON.stringify(data.user));
-        // localStorage.setItem('authToken', data.token); // If token is to be stored
-        toast({
-          title: "Connexion réussie",
-          description: data.message || "Bienvenue dans votre espace de traitement documentaire!",
-        });
-        setIsLoading(false);
-        return true;
-      } else {
-        toast({
-          title: "Erreur de connexion",
-          description: data.error || data.errors?.[0]?.msg || "Email ou mot de passe incorrect",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return false;
-      }
-    } catch (error) {
-      console.error('Login API call failed:', error);
+    if (email === 'demo@example.com' && password === 'demo123') {
+      setUser(mockUser); // Use imported mockUser
+      localStorage.setItem('authUser', JSON.stringify(mockUser));
       toast({
-        title: "Erreur de connexion",
-        description: "Impossible de se connecter au serveur. Veuillez réessayer plus tard.",
+        title: "Connexion réussie (Mock)",
+        description: "Bienvenue dans votre espace de traitement documentaire!",
+      });
+      setIsLoading(false);
+      return true;
+    } else {
+      toast({
+        title: "Erreur de connexion (Mock)",
+        description: "Email ou mot de passe incorrect.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -92,48 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (name: string, email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true);
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    const registerUrl = `${apiBaseUrl}/auth/register`;
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    try {
-      const response = await fetch(registerUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }), // Assuming backend expects 'name'
-      });
+    // In a real scenario, you might want to check if email is already used, etc.
+    // For mock, we just simulate success.
+    console.log("Mock registration attempt:", { name, email, password }); // Log input
 
-      const data = await response.json();
-
-      if (response.ok && data.id) { // Backend register currently returns the user object on success
-        toast({
-          title: "Compte créé avec succès!",
-          description: "Vous pouvez maintenant vous connecter.",
-        });
-        setIsLoading(false);
-        return { success: true, message: "Registration successful. Please log in." };
-      } else {
-        // Handle errors from express-validator (data.errors) or other backend errors (data.error or data.msg)
-        const errorMessage = data.error || data.errors?.[0]?.msg || data.message || "Impossible de créer le compte.";
-        toast({
-          title: "Erreur d'inscription",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return { success: false, message: errorMessage };
-      }
-    } catch (error) {
-      console.error('Register API call failed:', error);
-      toast({
-        title: "Erreur d'inscription",
-        description: "Impossible de se connecter au serveur. Veuillez réessayer plus tard.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return { success: false, message: 'Network error or server unreachable' };
-    }
+    toast({
+      title: "Compte créé avec succès! (Mock)",
+      description: "Vous pouvez maintenant vous connecter avec les identifiants de démo.",
+    });
+    setIsLoading(false);
+    return { success: true, message: "Mock registration successful. Please use demo credentials to log in." };
   };
 
   const logout = () => {
