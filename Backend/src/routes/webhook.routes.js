@@ -38,8 +38,13 @@ router.post('/cafpi-document-analysis', protect, async (req, res) => {
 
     res.status(200).json(analysisData);
   } catch (error) {
-    console.error('Error forwarding webhook:', error.message);
-    res.status(500).send('Server Error');
+    if (error.response && error.response.status === 404) {
+      console.error('Error forwarding webhook: External endpoint not found (404).');
+      res.status(500).send('Error forwarding webhook: External endpoint not found.');
+    } else {
+      console.error('Error forwarding webhook:', error.message);
+      res.status(500).send('Server Error');
+    }
   }
 });
 
