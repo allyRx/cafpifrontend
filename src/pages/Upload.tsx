@@ -83,7 +83,7 @@ export const Upload: React.FC = () => {
       name: file.name,
       type: file.type,
       size: file.size,
-      status: 'uploading', // Initial status
+      status: 'uploaded', // Initial status (changed from 'uploading' to 'uploaded')
       preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
     }));
 

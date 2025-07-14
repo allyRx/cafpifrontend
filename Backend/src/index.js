@@ -44,8 +44,12 @@ connectDB();
 
 // Middleware
 app.use(cors()); // Enable CORS for all routes
+
+
 app.options('*', cors()); // Enable pre-flight requests for all routes
-app.use(express.json()); // Used to parse JSON bodies
+// Body parser avec une limite augmentée
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Define Routes
 app.get('/', (req, res) => res.send('API Running!')); // This simple route remains
@@ -79,9 +83,11 @@ app.use('/api/analysis', analysisRoutes);
 console.log("Completed app.use for /api/analysis");
 
 
-// Error Handling Middleware - Should be last
+//Error Handling Middleware - Should be last
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+
+
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
