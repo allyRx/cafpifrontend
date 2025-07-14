@@ -23,6 +23,14 @@ console.log("Requiring route module: ./routes/result.routes.js");
 const resultRoutes = require('./routes/result.routes.js');
 console.log("Successfully required ./routes/result.routes.js:", resultRoutes);
 
+console.log("Requiring route module: ./routes/webhook.routes.js");
+const webhookRoutes = require('./routes/webhook.routes.js');
+console.log("Successfully required ./routes/webhook.routes.js:", webhookRoutes);
+
+console.log("Requiring route module: ./routes/analysis.routes.js");
+const analysisRoutes = require('./routes/analysis.routes.js');
+console.log("Successfully required ./routes/analysis.routes.js:", analysisRoutes);
+
 const { errorHandler } = require('./middleware/error.middleware.js'); // .js
 
 // Load environment variables from Backend/.env
@@ -61,6 +69,15 @@ console.log("Completed app.use for /api/jobs");
 console.log("Attempting app.use for /api/results");
 app.use('/api/results', resultRoutes);
 console.log("Completed app.use for /api/results");
+
+console.log("Attempting app.use for /api/webhook");
+app.use('/api/webhook', webhookRoutes);
+console.log("Completed app.use for /api/webhook");
+
+console.log("Attempting app.use for /api/analysis");
+app.use('/api/analysis', analysisRoutes);
+console.log("Completed app.use for /api/analysis");
+
 
 // Error Handling Middleware - Should be last
 app.use(errorHandler);
