@@ -1,11 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
-import { mockUser } from '../data/mockData';
 import { useToast } from '../hooks/use-toast';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -24,38 +27,39 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // console.log('API Base URL from AuthProvider:', import.meta.env.VITE_API_BASE_URL); // Commented out
-
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est connecté au chargement
     const savedUser = localStorage.getItem('authUser');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('authToken');
+    if (savedUser && savedToken) {
       setUser(JSON.parse(savedUser));
+      setToken(savedToken);
     }
     setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (email === 'demo@example.com' && password === 'demo123') {
-      setUser(mockUser); // Use imported mockUser
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      const { user, token } = response.data;
+      setUser(user);
+      setToken(token);
+      localStorage.setItem('authUser', JSON.stringify(user));
+      localStorage.setItem('authToken', token);
       toast({
-        title: "Connexion réussie (Mock)",
+        title: "Connexion réussie",
         description: "Bienvenue dans votre espace de traitement documentaire!",
       });
       setIsLoading(false);
       return true;
-    } else {
+    } catch (error) {
       toast({
-        title: "Erreur de connexion (Mock)",
+        title: "Erreur de connexion",
         description: "Email ou mot de passe incorrect.",
         variant: "destructive",
       });
@@ -66,24 +70,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (name: string, email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true);
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // In a real scenario, you might want to check if email is already used, etc.
-    // For mock, we just simulate success.
-    console.log("Mock registration attempt:", { name, email, password }); // Log input
-
-    toast({
-      title: "Compte créé avec succès! (Mock)",
-      description: "Vous pouvez maintenant vous connecter avec les identifiants de démo.",
-    });
-    setIsLoading(false);
-    return { success: true, message: "Mock registration successful. Please use demo credentials to log in." };
+    try {
+      await axios.post(`${API_BASE_URL}/auth/register`, { name, email, password });
+      toast({
+        title: "Compte créé avec succès!",
+        description: "Vous pouvez maintenant vous connecter.",
+      });
+      setIsLoading(false);
+      return { success: true };
+    } catch (error: any) {
+      toast({
+        title: "Erreur d'inscription",
+        description: error.response?.data?.errors?.[0]?.msg || "Une erreur est survenue.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return { success: false, message: error.response?.data?.errors?.[0]?.msg || "Une erreur est survenue." };
+    }
   };
 
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem('authUser');
+    localStorage.removeItem('authToken');
     toast({
       title: "Déconnexion",
       description: "Vous avez été déconnecté avec succès",
@@ -111,11 +121,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
+    token,
     login,
     logout,
     isLoading,
     updateSubscription,
-    register, // Added register to context value
+    register,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,42 +1,14 @@
-// src/services/folderService.ts
-import { Folder } from '../types'; // Assuming Folder type is available
-import { mockFolders } from '../data/mockData'; // Adjusted path
-
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Commented out for mock
-
-// Placeholder for adding auth headers if/when JWT is implemented
-// const getAuthHeaders = () => {
-//   const token = localStorage.getItem('authToken'); // Or however token is stored
-//   return token ? { 'Authorization': `Bearer ${token}` } : {};
-// };
+import { Folder } from '../types';
+import api from '../lib/api';
 
 export const getFolders = async (): Promise<Folder[]> => {
-  // console.log("folderService: Using mock getFolders");
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return Promise.resolve([...mockFolders]); // Return a copy to prevent direct mutation
+  const response = await api.get('/folders');
+  return response.data;
 };
 
-export const createFolder = async (folderData: { name: string; description?: string }): Promise<Folder> => {
-  // console.log("folderService: Using mock createFolder with data:", folderData);
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-
-  const newMockFolder: Folder = {
-    id: Date.now().toString(), // Simple unique ID for mock
-    name: folderData.name,
-    description: folderData.description || '',
-    createdAt: new Date().toISOString(),
-    fileCount: 0,
-    status: 'active', // Default status for new mock folder
-    // userId: 'mockUserId' // Add if your Folder type requires it and it's not optional
-  };
-  // Add to the mockFolders array to simulate persistence for the session
-  // Note: This modifies the mockFolders array in mockData.ts.
-  // For a cleaner mock, you might manage a local copy within the service or context.
-  // mockFolders.unshift(newMockFolder); // Add to beginning
-
-  return Promise.resolve(newMockFolder);
+export const createFolder = async (folderData: { name:string; description?: string }): Promise<Folder> => {
+  const response = await api.post('/folders', folderData);
+  return response.data;
 };
 
 // Stub for updateFolder - to be implemented if needed

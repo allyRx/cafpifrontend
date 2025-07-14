@@ -1,16 +1,34 @@
-// const jwt = require('jsonwebtoken'); // Commented out
-// const User = require('../models/User.js'); // Commented out
+const jwt = require('jsonwebtoken');
+const User = require('../models/User.js');
 
-const protect = (req, res, next) => {
-  // Placeholder: Simulate user authentication
-  // console.warn('Auth Middleware: JWT verification skipped, using mock user due to jsonwebtoken install issues.');
-  // Using a consistent mock user ID that was used in earlier placeholder versions.
-  req.user = {
-    id: '60f7e2b5c1e2a3001f8e4d5c', // Example ObjectId string
-    email: 'mock@example.com',
-    name: 'Mock User'
-  };
-  next();
+const protect = async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      // Get token from header
+      token = req.headers.authorization.split(' ')[1];
+
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get user from the token
+      req.user = await User.findById(decoded.userId).select('-password');
+
+      if (!req.user) {
+        return res.status(401).json({ msg: 'Not authorized, user not found' });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      res.status(401).json({ msg: 'Not authorized, token failed' });
+    }
+  }
+
+  if (!token) {
+    res.status(401).json({ msg: 'Not authorized, no token' });
+  }
 };
 
 module.exports = { protect };

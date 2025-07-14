@@ -14,11 +14,11 @@ import {
   AlertCircle,
   Folder as FolderIconLucide // Renamed to avoid conflict with FolderType
 } from 'lucide-react';
-// import { mockFolders } from '../data/mockData'; // Removed
 import { useToast } from '../hooks/use-toast';
 import { UploadedFile, Folder as FolderType } from '../types'; // Added FolderType
 import { getFolders } from '../services/folderService'; // Added
-import { uploadFile } from '../services/uploadService'; // Added
+import { uploadFile, submitForAnalysis } from '../services/uploadService';
+import { useAuth } from '../context/AuthContext';
 
 export const Upload: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState<string>('');
@@ -26,6 +26,7 @@ export const Upload: React.FC = () => {
   const [folders, setFolders] = useState<FolderType[]>([]); // Added state for folders
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadFolders = async () => {
@@ -93,11 +94,38 @@ export const Upload: React.FC = () => {
       if (!originalFile) return;
 
       try {
-        // Note: uploadFile service expects folderId, ensure selectedFolder holds the ID.
         const backendFile = await uploadFile(originalFile, selectedFolder);
         setUploadedFiles(prev =>
           prev.map(f => (f.id === fileEntry.id ? { ...backendFile, preview: f.preview } : f))
         );
+
+        // Convert file to base64 and submit for analysis
+        const reader = new FileReader();
+        reader.readAsDataURL(originalFile);
+        reader.onloadend = async () => {
+          const base64String = reader.result?.toString().split(',')[1];
+          if (base64String) {
+            try {
+              await submitForAnalysis({
+                dossier_number: selectedFolder, // Assuming folder ID is the dossier number
+                borrower_name: user?.name || 'Unknown User',
+                document_base64: base64String,
+                filename: originalFile.name,
+                comments: `File uploaded to folder ${selectedFolder}`,
+              });
+              toast({
+                title: "Analyse soumise",
+                description: `Le fichier ${originalFile.name} a été soumis pour analyse.`,
+              });
+            } catch (analysisError) {
+              toast({
+                title: `Erreur d'analyse: ${originalFile.name}`,
+                description: (analysisError as Error).message,
+                variant: "destructive",
+              });
+            }
+          }
+        };
       } catch (error) {
         setUploadedFiles(prev =>
           prev.map(f => (f.id === fileEntry.id ? { ...f, status: 'error' } : f))
