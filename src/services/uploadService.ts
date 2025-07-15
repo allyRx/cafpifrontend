@@ -6,12 +6,20 @@ export const uploadFile = async (file: File, folderId: string): Promise<Uploaded
   formData.append('file', file);
   formData.append('folderId', folderId);
 
-  const response = await api.post('/upload', formData, {
+  const response = await api.post<UploadedFileType>('/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
+  // Ensure the response contains all required UploadedFileType properties
+  const uploadedFile: UploadedFileType = {
+    id: response.data.id,
+    name: response.data.name,
+    type: response.data.type,
+    size: response.data.size,
+    status: response.data.status,
+  };
+  return uploadedFile;
 };
 
 export const submitForAnalysis = async (data: {
