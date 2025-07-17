@@ -16,6 +16,7 @@ import { useToast } from '../hooks/use-toast';
 
 export const Results: React.FC = () => {
   const [results, setResults] = useState<AnalysisResult[]>([]);
+  const [selectedResult, setSelectedResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -68,17 +69,25 @@ export const Results: React.FC = () => {
             {results.map((result) => (
               <TableRow key={result._id}>
                 <TableCell className="font-medium">
-                  {result.metadata.filename}
+                  {result.metadata?.filename || 'Inconnu'}
                 </TableCell>
-                <TableCell>{result.dossier_number}</TableCell>
+                <TableCell>{result.dossier_number || '—'}</TableCell>
                 <TableCell>
-                  {new Date(result.createdAt).toLocaleDateString()}
+                  {result.createdAt
+                    ? new Date(result.createdAt).toLocaleDateString()
+                    : '—'}
                 </TableCell>
                 <TableCell>
-                  <Badge>{result.metadata.processing_status}</Badge>
+                  <Badge>
+                    {result.metadata?.processing_status || 'Inconnu'}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button variant="outline" size="icon">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSelectedResult(result)}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </TableCell>
@@ -87,6 +96,290 @@ export const Results: React.FC = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selectedResult && (
+        <div className="mt-8 border rounded-lg p-6 bg-gray-50">
+          <h2 className="text-2xl font-bold mb-4">Détails du résultat</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <h3 className="md:col-span-2 font-semibold">Informations bancaires</h3>
+            <div>
+              <strong>Titulaire :</strong>{' '}
+              {selectedResult.bank_account_info?.titulaire || '—'}
+            </div>
+            <div>
+              <strong>Numéro de compte :</strong>{' '}
+              {selectedResult.bank_account_info?.numero_compte || '—'}
+            </div>
+            <div>
+              <strong>Banque :</strong>{' '}
+              {selectedResult.bank_account_info?.banque || '—'}
+            </div>
+            <div>
+              <strong>Période :</strong>{' '}
+              {selectedResult.bank_account_info?.periode || '—'}
+            </div>
+            <div>
+              <strong>Solde début :</strong>{' '}
+              {selectedResult.bank_account_info?.solde_debut || '—'}
+            </div>
+            <div>
+              <strong>Solde fin :</strong>{' '}
+              {selectedResult.bank_account_info?.solde_fin || '—'}
+            </div>
+            <div>
+              <strong>IBAN :</strong>{' '}
+              {selectedResult.bank_account_info?.iban || '—'}
+            </div>
+
+            <h3 className="md:col-span-2 font-semibold mt-6">
+              Analyse financière
+            </h3>
+            <div>
+              <strong>Équilibre du compte :</strong>{' '}
+              {selectedResult.financial_analysis?.equilibre_compte || '—'}
+            </div>
+            <div>
+              <strong>Frais bancaires détectés :</strong>{' '}
+              {typeof selectedResult.financial_analysis?.frais_bancaires_detectes === 'boolean'
+                ? selectedResult.financial_analysis.frais_bancaires_detectes
+                  ? 'Oui'
+                  : 'Non'
+                : '—'}
+            </div>
+            <div>
+              <strong>Nombre de frais :</strong>{' '}
+              {selectedResult.financial_analysis?.nombre_frais ?? '—'}
+            </div>
+            <div>
+              <strong>Revenus réguliers :</strong>{' '}
+              {typeof selectedResult.financial_analysis?.revenus_reguliers === 'boolean'
+                ? selectedResult.financial_analysis.revenus_reguliers
+                  ? 'Oui'
+                  : 'Non'
+                : '—'}
+            </div>
+            <div>
+              <strong>Prêts en cours :</strong>{' '}
+              {typeof selectedResult.financial_analysis?.prets_en_cours === 'boolean'
+                ? selectedResult.financial_analysis.prets_en_cours
+                  ? 'Oui'
+                  : 'Non'
+                : '—'}
+            </div>
+            <div>
+              <strong>Revenus fonciers :</strong>{' '}
+              {typeof selectedResult.financial_analysis?.revenus_fonciers === 'boolean'
+                ? selectedResult.financial_analysis.revenus_fonciers
+                  ? 'Oui'
+                  : 'Non'
+                : '—'}
+            </div>
+
+            <h3 className="md:col-span-2 font-semibold mt-6">Validations CAFPI</h3>
+            <div>
+              <strong>Nom conforme :</strong>{' '}
+              {selectedResult.validations_cafpi?.nom_conforme || '—'}
+            </div>
+            <div>
+              <strong>Frais excessifs :</strong>{' '}
+              {selectedResult.validations_cafpi?.frais_excessifs || '—'}
+            </div>
+            <div>
+              <strong>Gestion équilibrée :</strong>{' '}
+              {selectedResult.validations_cafpi?.gestion_equilibree || '—'}
+            </div>
+            <div>
+              <strong>Revenus détectés :</strong>{' '}
+              {selectedResult.validations_cafpi?.revenus_detectes || '—'}
+            </div>
+            <div>
+              <strong>Prêts en cours :</strong>{' '}
+              {selectedResult.validations_cafpi?.prets_en_cours || '—'}
+            </div>
+
+            <h3 className="md:col-span-2 font-semibold mt-6">
+              Analyse des transactions
+            </h3>
+            <div className="md:col-span-2">
+              <strong>Débits réguliers :</strong>
+              {selectedResult.transactions_analysis?.debits_reguliers?.length ? (
+                <ul className="list-disc list-inside">
+                  {selectedResult.transactions_analysis.debits_reguliers.map(
+                    (debit, i) => (
+                      <li key={i}>
+                        {debit.type} — {debit.montant} ({debit.frequence})
+                      </li>
+                    )
+                  )}
+                </ul>
+              ) : (
+                ' Aucun'
+              )}
+            </div>
+            <div className="md:col-span-2">
+              <strong>Crédits réguliers :</strong>
+              {selectedResult.transactions_analysis?.credits_reguliers?.length ? (
+                <ul className="list-disc list-inside">
+                  {selectedResult.transactions_analysis.credits_reguliers.map(
+                    (credit, i) => (
+                      <li key={i}>
+                        {credit.type} — {credit.montant} ({credit.frequence})
+                      </li>
+                    )
+                  )}
+                </ul>
+              ) : (
+                ' Aucun'
+              )}
+            </div>
+            <div className="md:col-span-2">
+              <strong>Frais bancaires :</strong>
+              {selectedResult.transactions_analysis?.frais_bancaires?.length ? (
+                <ul className="list-disc list-inside">
+                  {selectedResult.transactions_analysis.frais_bancaires.map(
+                    (fee, i) => <li key={i}>{fee.type} — {fee.montant}</li>
+                  )}
+                </ul>
+              ) : (
+                ' Aucun'
+              )}
+            </div>
+            <div className="md:col-span-2">
+              <strong>Opérations inhabituelles :</strong>
+              {selectedResult.transactions_analysis?.operations_inhabituelles?.length ? (
+                <ul className="list-disc list-inside">
+                  {selectedResult.transactions_analysis.operations_inhabituelles.map(
+                    (op, i) =>
+                      op && typeof op === 'object' && 'type' in op && 'montant' in op
+                        ? <li key={i}>{op.type} — {op.montant}</li>
+                        : <li key={i}>{String(op)}</li>
+                  )}
+                </ul>
+              ) : (
+                ' Aucun'
+              )}
+            </div>
+
+            <h3 className="md:col-span-2 font-semibold mt-6">Revenus détectés</h3>
+            <div>
+              <strong>Salaire :</strong>{' '}
+              {selectedResult.revenus_detectes?.salaire || '—'}
+            </div>
+            <div>
+              <strong>Foncier :</strong>{' '}
+              {selectedResult.revenus_detectes?.foncier || '—'}
+            </div>
+            <div>
+              <strong>Autres :</strong>{' '}
+              {selectedResult.revenus_detectes?.autres || '—'}
+            </div>
+
+            <h3 className="md:col-span-2 font-semibold mt-6">Qualité & Confiance</h3>
+            <div>
+              <strong>Confiance globale :</strong>{' '}
+              {selectedResult.quality_metrics?.overall_confidence ?? '—'}%
+            </div>
+            <div>
+              <strong>Revue nécessaire :</strong>{' '}
+              {selectedResult.quality_metrics?.needs_review ? 'Oui' : 'Non'}
+            </div>
+            <div className="md:col-span-2">
+              <strong>Champs manquants :</strong>{' '}
+              {(selectedResult.quality_metrics?.missing_fields?.length ?? 0) > 0
+                ? selectedResult.quality_metrics.missing_fields.join(', ')
+                : 'Aucun'}
+            </div>
+
+            {selectedResult.quality_metrics?.confidence_breakdown && (
+              <>
+                <h4 className="md:col-span-2 font-semibold mt-4">
+                  Détail confiance par catégorie
+                </h4>
+                <div>
+                  <strong>Titulaire compte :</strong>{' '}
+                  {selectedResult.quality_metrics.confidence_breakdown.titulaire_compte ?? '—'}%
+                </div>
+                <div>
+                  <strong>Solde début :</strong>{' '}
+                  {selectedResult.quality_metrics.confidence_breakdown.solde_debut ?? '—'}%
+                </div>
+                <div>
+                  <strong>Solde fin :</strong>{' '}
+                  {selectedResult.quality_metrics.confidence_breakdown.solde_fin ?? '—'}%
+                </div>
+                <div>
+                  <strong>Frais bancaires :</strong>{' '}
+                  {selectedResult.quality_metrics.confidence_breakdown.frais_bancaires ?? '—'}%
+                </div>
+                <div>
+                  <strong>Crédits réguliers :</strong>{' '}
+                  {selectedResult.quality_metrics.confidence_breakdown.credits_reguliers ?? '—'}%
+                </div>
+                <div>
+                  <strong>Débits réguliers :</strong>{' '}
+                  {selectedResult.quality_metrics.confidence_breakdown.debits_reguliers ?? '—'}%
+                </div>
+                <div>
+                  <strong>Opérations inhabituelles :</strong>{' '}
+                  {selectedResult.quality_metrics.confidence_breakdown.operations_inhabituelles ?? '—'}%
+                </div>
+              </>
+            )}
+
+            <h3 className="md:col-span-2 font-semibold mt-6">Évaluation du risque</h3>
+            <div>
+              <strong>Stabilité financière :</strong>{' '}
+              {selectedResult.risk_assessment?.financial_stability || '—'}
+            </div>
+            <div>
+              <strong>Comportement bancaire :</strong>{' '}
+              {selectedResult.risk_assessment?.banking_behavior || '—'}
+            </div>
+            <div>
+              <strong>Fiabilité des revenus :</strong>{' '}
+              {selectedResult.risk_assessment?.income_reliability || '—'}
+            </div>
+            <div>
+              <strong>Crédit :</strong>{' '}
+              {selectedResult.risk_assessment?.creditworthiness || '—'}
+            </div>
+
+            <h3 className="md:col-span-2 font-semibold mt-6">Métadonnées</h3>
+            <div>
+              <strong>Nom du fichier :</strong>{' '}
+              {selectedResult.metadata?.filename || '—'}
+            </div>
+            <div>
+              <strong>Date du document :</strong>{' '}
+              {selectedResult.metadata?.timestamp
+                ? new Date(selectedResult.metadata.timestamp).toLocaleString()
+                : '—'}
+            </div>
+            <div>
+              <strong>Commentaires :</strong>{' '}
+              {selectedResult.metadata?.comments || 'Aucun'}
+            </div>
+            <div>
+              <strong>Statut traitement :</strong>{' '}
+              {selectedResult.metadata?.processing_status || '—'}
+            </div>
+
+            <h3 className="md:col-span-2 font-semibold mt-6">Recommandations</h3>
+            <div className="md:col-span-2">
+              {selectedResult.recommendations?.length ? (
+                <ul className="list-disc list-inside">
+                  {selectedResult.recommendations.map((rec, idx) => (
+                    <li key={idx}>{rec}</li>
+                  ))}
+                </ul>
+              ) : (
+                'Aucune recommandation'
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

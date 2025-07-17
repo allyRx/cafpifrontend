@@ -12,6 +12,7 @@ router.get('/', protect, async (req, res) => {
 
   try {
     const results = await AnalysisResult.find({ userId }).sort({ createdAt: -1 });
+     console.log('GET /analysis received');
     res.json(results);
   } catch (err) {
     console.error(err.message);

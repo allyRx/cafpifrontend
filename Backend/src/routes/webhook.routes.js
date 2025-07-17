@@ -39,7 +39,7 @@ router.post('/cafpi-document-analysis', protect, async (req, res) => {
     ...analysisData,
     userId,
   });
-console.log(newAnalysisResult);
+
   await newAnalysisResult.save();
 
   res.status(200).json(analysisData);
