@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { getAnalysisResults, updateAnalysisResult, deleteAnalysisResult } from '../services/analysisService';
 import { AnalysisResult } from '../types';
 import { useToast } from '../hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -24,29 +24,25 @@ import {
 } from '../components/ui/dialog';
 
 export const Results: React.FC = () => {
-  const [results, setResults] = useState<AnalysisResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<AnalysisResult | null>(null);
   const [editingResult, setEditingResult] = useState<AnalysisResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: fetchedResults, isLoading: isLoadingResults } = useQuery({
+  const { data: results, isLoading: isLoadingResults, error: resultsError } = useQuery({
     queryKey: ['analysisResults'],
     queryFn: getAnalysisResults,
-    onSuccess: (data) => {
-      setResults(data);
-      setIsLoading(false);
-    },
-    onError: (error) => {
+  });
+
+  React.useEffect(() => {
+    if (resultsError) {
       toast({
         title: 'Erreur de chargement des résultats',
-        description: (error as Error).message,
+        description: (resultsError as Error).message,
         variant: 'destructive',
       });
-      setIsLoading(false);
-    },
-  });
+    }
+  }, [resultsError, toast]);
 
   const deleteMutation = useMutation({
     mutationFn: deleteAnalysisResult,
@@ -93,9 +89,10 @@ export const Results: React.FC = () => {
     updateMutation.mutate(data);
   };
 
-  if (isLoading) {
+  if (isLoadingResults) {
     return <div>Chargement des résultats...</div>;
   }
+
 
   return (
     <div className="space-y-6">

@@ -1,29 +1,26 @@
-
-import React, { useState, useCallback, useEffect } from 'react'; // Added useEffect
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { 
-  Upload as UploadIcon, 
-  FileText, 
-  Image, 
-  X, 
-  CheckCircle,
-  AlertCircle,
-  Folder as FolderIconLucide // Renamed to avoid conflict with FolderType
+import {
+  Upload as UploadIcon,
+  FileText,
+  Image,
+  X,
+  Folder as FolderIconLucide
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { UploadedFile, Folder as FolderType } from '../types'; // Added FolderType
-import { getFolders } from '../services/folderService'; // Added
+import { UploadedFile, Folder as FolderType } from '../types';
+import { getFolders } from '../services/folderService';
 import { uploadFile, submitForAnalysis } from '../services/uploadService';
 import { useAuth } from '../context/AuthContext';
 
 export const Upload: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [folders, setFolders] = useState<FolderType[]>([]); // Added state for folders
+  const [folders, setFolders] = useState<FolderType[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -78,19 +75,32 @@ export const Upload: React.FC = () => {
       return;
     }
 
-    const newFileEntries: UploadedFile[] = rawFiles.map(file => ({
-      id: `temp-${Date.now().toString()}-${Math.random()}`, // Temporary ID
+    const filteredFiles = rawFiles.filter(file =>
+      !uploadedFiles.some(f => f.name === file.name && f.size === file.size)
+    );
+
+    if (filteredFiles.length === 0) {
+      toast({
+        title: "Aucun nouveau fichier",
+        description: "Tous les fichiers sont déjà ajoutés.",
+        variant: "default",
+      });
+      return;
+    }
+
+    const newFileEntries: UploadedFile[] = filteredFiles.map(file => ({
+      id: `temp-${Date.now().toString()}-${Math.random()}`,
       name: file.name,
       type: file.type,
       size: file.size,
-      status: 'uploaded', // Initial status (changed from 'uploading' to 'uploaded')
+      status: 'uploaded',
       preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
     }));
 
     setUploadedFiles(prev => [...prev, ...newFileEntries]);
 
     newFileEntries.forEach(async (fileEntry) => {
-      const originalFile = rawFiles.find(f => f.name === fileEntry.name && f.size === fileEntry.size);
+      const originalFile = filteredFiles.find(f => f.name === fileEntry.name && f.size === fileEntry.size);
       if (!originalFile) return;
 
       try {
@@ -99,7 +109,6 @@ export const Upload: React.FC = () => {
           prev.map(f => (f.id === fileEntry.id ? { ...backendFile, preview: f.preview } : f))
         );
 
-        // Convert file to base64 and submit for analysis
         const reader = new FileReader();
         reader.readAsDataURL(originalFile);
         reader.onloadend = async () => {
@@ -107,19 +116,19 @@ export const Upload: React.FC = () => {
           if (base64String) {
             toast({
               title: "Lancement de l'analyse",
-              description: `Le traitement de ${originalFile.name} a commencé. Cette opération peut prendre un certain temps.`,
+              description: `Le traitement de ${originalFile.name} a commencé.`,
             });
             try {
               await submitForAnalysis({
-                dossier_number: selectedFolder, // Assuming folder ID is the dossier number
-                borrower_name: user?.name || 'Unknown User',
+                dossier_number: selectedFolder,
+                borrower_name: user?.name || 'Utilisateur inconnu',
                 document_base64: base64String,
                 filename: originalFile.name,
-                comments: `File uploaded to folder ${selectedFolder}`,
+                comments: `Fichier envoyé au dossier ${selectedFolder}`,
               });
               toast({
                 title: "Analyse soumise",
-                description: `Le fichier ${originalFile.name} a été soumis pour analyse.`,
+                description: `Le fichier ${originalFile.name} a été soumis.`,
               });
             } catch (analysisError) {
               toast({
@@ -148,10 +157,9 @@ export const Upload: React.FC = () => {
   };
 
   const getFileIcon = (type: string) => {
-    if (type.startsWith('image/')) {
-      return <Image className="h-5 w-5 text-green-500" />;
-    }
-    return <FileText className="h-5 w-5 text-blue-500" />;
+    return type.startsWith('image/')
+      ? <Image className="h-5 w-5 text-green-500" />
+      : <FileText className="h-5 w-5 text-blue-500" />;
   };
 
   const getStatusBadge = (status: string) => {
@@ -183,7 +191,7 @@ export const Upload: React.FC = () => {
         </p>
       </div>
 
-      {/* Folder Selection */}
+      {/* Sélection du dossier */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -195,23 +203,34 @@ export const Upload: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choisir un dossier..." />
-            </SelectTrigger>
-            <SelectContent>
-              {folders.length === 0 && <SelectItem value="loading" disabled>Chargement des dossiers...</SelectItem>}
-              {folders.map(folder => (
-                <SelectItem key={folder.id} value={folder.id}>
-                  {folder.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+         <Select value={selectedFolder} onValueChange={(value) => {
+  console.log("Selected folder ID:", value); // Ajoutez ce log pour débogage
+  setSelectedFolder(value);
+}}>
+  <SelectTrigger className="w-full">
+    <SelectValue placeholder="Choisir un dossier..." />
+  </SelectTrigger>
+  <SelectContent>
+    {folders.length === 0 ? (
+      <SelectItem value="loading" disabled>
+        Chargement des dossiers...
+      </SelectItem>
+    ) : (
+      folders.map(folder => (
+        <SelectItem 
+          key={folder._id} 
+          value={folder._id.toString()} // Force la conversion en string si nécessaire
+        >
+          {folder.name}
+        </SelectItem>
+      ))
+    )}
+  </SelectContent>
+</Select>
         </CardContent>
       </Card>
 
-      {/* Upload Area */}
+      {/* Zone de dépôt */}
       <Card>
         <CardHeader>
           <CardTitle>Téléverser des fichiers</CardTitle>
@@ -222,8 +241,8 @@ export const Upload: React.FC = () => {
         <CardContent>
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-              isDragging 
-                ? 'border-primary bg-primary/5' 
+              isDragging
+                ? 'border-primary bg-primary/5'
                 : 'border-gray-300 hover:border-gray-400'
             }`}
             onDragOver={handleDragOver}
@@ -254,7 +273,7 @@ export const Upload: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Uploaded Files */}
+      {/* Liste des fichiers */}
       {uploadedFiles.length > 0 && (
         <Card>
           <CardHeader>
@@ -269,8 +288,8 @@ export const Upload: React.FC = () => {
                 <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-4">
                     {file.preview ? (
-                      <img 
-                        src={file.preview} 
+                      <img
+                        src={file.preview}
                         alt={file.name}
                         className="h-12 w-12 object-cover rounded"
                       />
@@ -284,7 +303,7 @@ export const Upload: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4">
                     {file.status === 'processing' && (
                       <div className="flex items-center space-x-2">
