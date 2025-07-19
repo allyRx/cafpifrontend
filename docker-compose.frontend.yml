@@ -1,0 +1,15 @@
+
+services:
+  frontend:
+    build: .
+    container_name: cafpi_frontend
+    ports:
+      - "8080:80"
+    networks:
+      - cafpi-net
+    env_file:
+      - .env
+networks:
+  cafpi-net:
+    external: true
+

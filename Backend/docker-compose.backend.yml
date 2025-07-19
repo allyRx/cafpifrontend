@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: .
+    container_name: cafpi_backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    networks:
+      - cafpi-net
+
+  mongo:
+    image: mongo
+    container_name: cafpi_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - cafpi-net
+
+volumes:
+  mongo-data:
+
+networks:
+  cafpi-net:
