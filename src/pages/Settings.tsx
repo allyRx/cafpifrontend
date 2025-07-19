@@ -20,8 +20,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/use-toast';
-import { exportUserData, deleteUserAccount, changePassword } from '../services/userService';
-import { useMutation } from '@tanstack/react-query';
+import { exportUserData, deleteUserAccount, changePassword, updateUserProfile, getUserProfile } from '../services/userService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,8 +36,9 @@ import {
 } from '../components/ui/dialog';
 
 export const Settings: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [profile, setProfile] = useState({
     name: user?.name || '',
@@ -47,6 +48,13 @@ export const Settings: React.FC = () => {
     bio: 'Utilisateur de cafpi pour automatiser le traitement de documents.'
   });
 
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: getUserProfile,
+    onSuccess: (data) => {
+      setProfile(data);
+    }
+  });
 
   const updateProfileMutation = useMutation({
     mutationFn: updateUserProfile,
@@ -55,7 +63,8 @@ export const Settings: React.FC = () => {
         title: "Profil mis à jour",
         description: "Vos informations personnelles ont été sauvegardées",
       });
-      // Optionally, update the user context here
+      setUser(data);
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
     },
     onError: (error) => {
       toast({

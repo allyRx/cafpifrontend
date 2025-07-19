@@ -123,4 +123,24 @@ router.put('/profile', protect, async (req, res) => {
   }
 });
 
+// @route   GET api/user/profile
+// @desc    Get user profile
+// @access  Private
+router.get('/profile', protect, async (req, res) => {
+  const userId = req.user?.id;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
