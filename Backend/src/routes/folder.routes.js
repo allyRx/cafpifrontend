@@ -38,6 +38,8 @@ router.post(
   }
 );
 
+const UploadedFile = require('../models/UploadedFile.js');
+
 // @route   GET api/folders
 // @desc    Get all folders for the authenticated user
 // @access  Private
@@ -49,8 +51,16 @@ router.get('/', protect, async (req, res) => {
   }
 
   try {
-    const folders = await Folder.find({ userId });
-    res.json(folders);
+    const folders = await Folder.find({ userId }).lean();
+
+    const foldersWithFileCounts = await Promise.all(
+      folders.map(async (folder) => {
+        const fileCount = await UploadedFile.countDocuments({ folderId: folder._id });
+        return { ...folder, fileCount };
+      })
+    );
+
+    res.json(foldersWithFileCounts);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

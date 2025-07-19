@@ -86,7 +86,7 @@ router.post(
       return res.status(500).send('Server error (JWT_SECRET not configured)');
     }
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '72h' });
 
     res.json({
       success: true,

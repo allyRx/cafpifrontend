@@ -20,6 +20,20 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/use-toast';
+import { exportUserData, deleteUserAccount, changePassword } from '../services/userService';
+import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '../components/ui/dialog';
 
 export const Settings: React.FC = () => {
   const { user, logout } = useAuth();
@@ -33,11 +47,6 @@ export const Settings: React.FC = () => {
     bio: 'Utilisateur de DocProcess AI pour automatiser le traitement de documents.'
   });
 
-  const [privacy, setPrivacy] = useState({
-    profileVisible: false,
-    dataSharing: false,
-    analyticsTracking: true
-  });
 
   const handleSaveProfile = () => {
     toast({
@@ -46,19 +55,89 @@ export const Settings: React.FC = () => {
     });
   };
 
+  const exportDataMutation = useMutation({
+    mutationFn: exportUserData,
+    onSuccess: () => {
+      toast({
+        title: "Export démarré",
+        description: "Vos données sont en cours d'export. Vous recevrez un email avec le lien de téléchargement.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur d'export",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: deleteUserAccount,
+    onSuccess: () => {
+      toast({
+        title: "Compte supprimé",
+        description: "Votre compte a été supprimé avec succès.",
+      });
+      logout();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur de suppression",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleExportData = () => {
-    toast({
-      title: "Export démarré",
-      description: "Vos données sont en cours d'export. Vous recevrez un email avec le lien de téléchargement.",
-    });
+    exportDataMutation.mutate();
   };
 
   const handleDeleteAccount = () => {
-    toast({
-      title: "Suppression de compte",
-      description: "Un email de confirmation a été envoyé",
-      variant: "destructive",
-    });
+    deleteAccountMutation.mutate();
+  };
+
+  const passwordFormSchema = z.object({
+    currentPassword: z.string().min(1, "Mot de passe actuel requis"),
+    newPassword: z.string().min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères"),
+    confirmPassword: z.string()
+  }).refine(data => data.newPassword === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
+  });
+
+  type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordFormSchema),
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: changePassword,
+    onSuccess: () => {
+      toast({
+        title: "Mot de passe changé",
+        description: "Votre mot de passe a été changé avec succès.",
+      });
+      reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur de changement de mot de passe",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmitPasswordChange = (data: PasswordFormValues) => {
+    changePasswordMutation.mutate(data);
   };
 
   return (
@@ -170,56 +249,45 @@ export const Settings: React.FC = () => {
           <div className="space-y-4">
             <div>
               <p className="font-medium mb-2">Mot de passe</p>
-              <Button variant="outline">
-                <Key className="mr-2 h-4 w-4" />
-                Changer le mot de passe
-              </Button>
+              <Dialog onOpenChange={() => reset()}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Key className="mr-2 h-4 w-4" />
+                    Changer le mot de passe
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <form onSubmit={handleSubmit(onSubmitPasswordChange)}>
+                    <DialogHeader>
+                      <DialogTitle>Changer le mot de passe</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="current-password">Mot de passe actuel</Label>
+                        <Input id="current-password" type="password" {...register("currentPassword")} />
+                        {errors.currentPassword && <p className="text-red-500 text-sm">{errors.currentPassword.message}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                        <Input id="new-password" type="password" {...register("newPassword")} />
+                        {errors.newPassword && <p className="text-red-500 text-sm">{errors.newPassword.message}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                        <Input id="confirm-password" type="password" {...register("confirmPassword")} />
+                        {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>}
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" disabled={changePasswordMutation.isPending}>
+                        {changePasswordMutation.isPending ? "Sauvegarde en cours..." : "Sauvegarder"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
 
-            <Separator />
-
-            <div className="space-y-4">
-              <h4 className="font-medium">Confidentialité</h4>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Profil visible</p>
-                  <p className="text-sm text-gray-600">Rendre votre profil visible aux autres utilisateurs</p>
-                </div>
-                <Switch
-                  checked={privacy.profileVisible}
-                  onCheckedChange={(checked) => 
-                    setPrivacy({ ...privacy, profileVisible: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Partage de données</p>
-                  <p className="text-sm text-gray-600">Autoriser le partage de données anonymisées</p>
-                </div>
-                <Switch
-                  checked={privacy.dataSharing}
-                  onCheckedChange={(checked) => 
-                    setPrivacy({ ...privacy, dataSharing: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Suivi analytique</p>
-                  <p className="text-sm text-gray-600">Permettre le suivi pour améliorer l'expérience</p>
-                </div>
-                <Switch
-                  checked={privacy.analyticsTracking}
-                  onCheckedChange={(checked) => 
-                    setPrivacy({ ...privacy, analyticsTracking: checked })
-                  }
-                />
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
