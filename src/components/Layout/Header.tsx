@@ -19,31 +19,13 @@ export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const getSubscriptionBadge = () => {
-    if (!user) return null;
-    
-    const { plan, status } = user.subscription;
-    const variant = status === 'active' ? 'default' : 'destructive';
-    const text = plan === 'free' ? 'Gratuit' : plan === 'basic' ? 'Basique' : 'Premium';
-    
-    return <Badge variant={variant} className="ml-2">{text}</Badge>;
-  };
-
   return (
     <header className="bg-white border-b border-border h-16 flex items-center justify-between px-6 sticky top-0 z-50">
       <div className="flex items-center space-x-4">
-        <h1 className="text-xl font-bold text-primary">DocProcess AI</h1>
-        {getSubscriptionBadge()}
+        <h1 className="text-xl font-bold text-primary">cafpi</h1>
       </div>
       
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            3
-          </span>
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">

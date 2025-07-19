@@ -27,3 +27,12 @@ export const getAnalysisResult = async (id: string): Promise<AnalysisResult> => 
   const response = await api.get(`/analysis/${id}`);
   return response.data as AnalysisResult;
 };
+
+export const updateAnalysisResult = async (id: string, data: any): Promise<AnalysisResult> => {
+  const response = await api.put(`/analysis/${id}`, data);
+  return response.data as AnalysisResult;
+};
+
+export const deleteAnalysisResult = async (id: string): Promise<void> => {
+  await api.delete(`/analysis/${id}`);
+};
