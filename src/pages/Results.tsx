@@ -71,7 +71,7 @@ export const Results: React.FC = () => {
                 <TableCell className="font-medium">
                   {result.metadata?.filename || 'Inconnu'}
                 </TableCell>
-                <TableCell>{result.dossier_number || '—'}</TableCell>
+                <TableCell>{result.folderName || '—'}</TableCell>
                 <TableCell>
                   {result.createdAt
                     ? new Date(result.createdAt).toLocaleDateString()

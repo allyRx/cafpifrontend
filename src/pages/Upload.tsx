@@ -105,6 +105,10 @@ export const Upload: React.FC = () => {
         reader.onloadend = async () => {
           const base64String = reader.result?.toString().split(',')[1];
           if (base64String) {
+            toast({
+              title: "Lancement de l'analyse",
+              description: `Le traitement de ${originalFile.name} a commencé. Cette opération peut prendre un certain temps.`,
+            });
             try {
               await submitForAnalysis({
                 dossier_number: selectedFolder, // Assuming folder ID is the dossier number

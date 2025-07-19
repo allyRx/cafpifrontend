@@ -11,10 +11,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Folders } from "./pages/Folders";
 import { Upload } from "./pages/Upload";
 import { Results } from "./pages/Results";
-import { Reports } from "./pages/Reports";
-import { Subscription } from "./pages/Subscription";
 import { Settings } from "./pages/Settings";
-import { Help } from "./pages/Help";
 import NotFound from "./pages/NotFound";
 import { RegisterPage } from "./pages/Register"; // Import RegisterPage
 
@@ -69,33 +66,12 @@ const App = () => (
             }>
               <Route index element={<Results />} />
             </Route>
-            <Route path="/reports" element={
-              <ProtectedRoute requiresPremium>
-                <MainLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<Reports />} />
-            </Route>
-            <Route path="/subscription" element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<Subscription />} />
-            </Route>
             <Route path="/settings" element={
               <ProtectedRoute>
                 <MainLayout />
               </ProtectedRoute>
             }>
               <Route index element={<Settings />} />
-            </Route>
-            <Route path="/help" element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<Help />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

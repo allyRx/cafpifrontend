@@ -15,22 +15,29 @@ import {
   Download
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { mockFolders, mockProcessingJobs } from '../data/mockData';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getDashboardStats, getRecentJobs, getActiveFolders } from '../services/dashboardService';
+import { Skeleton } from '../components/ui/skeleton';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const stats = {
-    totalDocuments: 45,
-    documentsThisMonth: 12,
-    completedJobs: 38,
-    pendingJobs: 7,
-    successRate: 95
-  };
+  const { data: stats, isLoading: isLoadingStats } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: getDashboardStats,
+  });
 
-  const recentJobs = mockProcessingJobs.slice(0, 3);
+  const { data: recentJobs, isLoading: isLoadingRecentJobs } = useQuery({
+    queryKey: ['recentJobs'],
+    queryFn: getRecentJobs,
+  });
+
+  const { data: activeFolders, isLoading: isLoadingActiveFolders } = useQuery({
+    queryKey: ['activeFolders'],
+    queryFn: getActiveFolders,
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -80,55 +87,66 @@ export const Dashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Documents traités</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDocuments}</div>
-            <p className="text-xs text-muted-foreground">
-              +{stats.documentsThisMonth} ce mois
-            </p>
-          </CardContent>
-        </Card>
+        {isLoadingStats ? (
+          <>
+            <Skeleton className="h-28" />
+            <Skeleton className="h-28" />
+            <Skeleton className="h-28" />
+            <Skeleton className="h-28" />
+          </>
+        ) : (
+          <>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Documents traités</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.totalDocuments}</div>
+                <p className="text-xs text-muted-foreground">
+                  +{stats?.documentsThisMonth} ce mois
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tâches terminées</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completedJobs}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingJobs} en cours
-            </p>
-          </CardContent>
-        </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Tâches terminées</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.completedJobs}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.pendingJobs} en cours
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taux de réussite</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.successRate}%</div>
-            <Progress value={stats.successRate} className="mt-2" />
-          </CardContent>
-        </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Taux de réussite</CardTitle>
+                <TrendingUp className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.successRate}%</div>
+                <Progress value={stats?.successRate} className="mt-2" />
+              </CardContent>
+            </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dossiers actifs</CardTitle>
-            <Folder className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockFolders.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {mockFolders.filter(f => f.status === 'active').length} nouveaux
-            </p>
-          </CardContent>
-        </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Dossiers actifs</CardTitle>
+                <Folder className="h-4 w-4 text-purple-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeFolders?.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {activeFolders?.length} nouveaux
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -141,27 +159,35 @@ export const Dashboard: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentJobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    {getStatusIcon(job.status)}
-                    <div>
-                      <p className="font-medium text-sm">{job.fileName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(job.createdAt).toLocaleDateString('fr-FR')}
-                      </p>
+            {isLoadingRecentJobs ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16" />
+                <Skeleton className="h-16" />
+                <Skeleton className="h-16" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentJobs?.map((job) => (
+                  <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      {getStatusIcon(job.status)}
+                      <div>
+                        <p className="font-medium text-sm">{job.fileName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(job.createdAt).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {job.status === 'processing' && (
+                        <Progress value={job.progress} className="w-16" />
+                      )}
+                      {getStatusBadge(job.status)}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {job.status === 'processing' && (
-                      <Progress value={job.progress} className="w-16" />
-                    )}
-                    {getStatusBadge(job.status)}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <Button 
               variant="outline" 
               className="w-full mt-4"

@@ -49,6 +49,7 @@ export interface UploadedFile {
 }
 
 export interface AnalysisResult {
+  folderName: string;
   _id: string;
   dossier_number: string;
   borrower_name: string;

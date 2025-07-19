@@ -10,7 +10,6 @@ import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { 
   User, 
-  Bell, 
   Shield, 
   Download, 
   Trash2,
@@ -34,14 +33,6 @@ export const Settings: React.FC = () => {
     bio: 'Utilisateur de DocProcess AI pour automatiser le traitement de documents.'
   });
 
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    processingUpdates: true,
-    marketingEmails: false,
-    securityAlerts: true
-  });
-
   const [privacy, setPrivacy] = useState({
     profileVisible: false,
     dataSharing: false,
@@ -52,13 +43,6 @@ export const Settings: React.FC = () => {
     toast({
       title: "Profil mis à jour",
       description: "Vos informations personnelles ont été sauvegardées",
-    });
-  };
-
-  const handleSaveNotifications = () => {
-    toast({
-      title: "Préférences sauvegardées",
-      description: "Vos préférences de notification ont été mises à jour",
     });
   };
 
@@ -167,92 +151,6 @@ export const Settings: React.FC = () => {
           <Button onClick={handleSaveProfile}>
             <Save className="mr-2 h-4 w-4" />
             Sauvegarder les modifications
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Notification Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Bell className="h-5 w-5" />
-            <span>Notifications</span>
-          </CardTitle>
-          <CardDescription>
-            Configurez vos préférences de notification
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Notifications par email</p>
-                <p className="text-sm text-gray-600">Recevoir des notifications importantes par email</p>
-              </div>
-              <Switch
-                checked={notifications.emailNotifications}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, emailNotifications: checked })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Notifications push</p>
-                <p className="text-sm text-gray-600">Recevoir des notifications dans le navigateur</p>
-              </div>
-              <Switch
-                checked={notifications.pushNotifications}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, pushNotifications: checked })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Mises à jour de traitement</p>
-                <p className="text-sm text-gray-600">Notifications sur l'avancement des traitements</p>
-              </div>
-              <Switch
-                checked={notifications.processingUpdates}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, processingUpdates: checked })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Emails marketing</p>
-                <p className="text-sm text-gray-600">Recevoir des informations sur les nouveautés</p>
-              </div>
-              <Switch
-                checked={notifications.marketingEmails}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, marketingEmails: checked })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Alertes de sécurité</p>
-                <p className="text-sm text-gray-600">Notifications importantes sur la sécurité</p>
-              </div>
-              <Switch
-                checked={notifications.securityAlerts}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, securityAlerts: checked })
-                }
-              />
-            </div>
-          </div>
-
-          <Button onClick={handleSaveNotifications}>
-            <Save className="mr-2 h-4 w-4" />
-            Sauvegarder les préférences
           </Button>
         </CardContent>
       </Card>
