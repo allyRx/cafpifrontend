@@ -31,6 +31,15 @@ console.log("Requiring route module: ./routes/analysis.routes.js");
 const analysisRoutes = require('./routes/analysis.routes.js');
 console.log("Successfully required ./routes/analysis.routes.js:", analysisRoutes);
 
+console.log("Requiring route module: ./routes/user.routes.js");
+const userRoutes = require('./routes/user.routes.js');
+console.log("Successfully required ./routes/user.routes.js:", userRoutes);
+
+console.log("Requiring route module: ./routes/stats.routes.js");
+const statsRoutes = require('./routes/stats.routes.js');
+console.log("Successfully required ./routes/stats.routes.js:", statsRoutes);
+
+
 const { errorHandler } = require('./middleware/error.middleware.js'); // .js
 
 // Load environment variables from Backend/.env
@@ -81,6 +90,14 @@ console.log("Completed app.use for /api/webhook");
 console.log("Attempting app.use for /api/analysis");
 app.use('/api/analysis', analysisRoutes);
 console.log("Completed app.use for /api/analysis");
+
+console.log("Attempting app.use for /api/user");
+app.use('/api/user', userRoutes);
+console.log("Completed app.use for /api/user");
+
+console.log("Attempting app.use for /api/stats");
+app.use('/api/stats', statsRoutes);
+console.log("Completed app.use for /api/stats");
 
 
 //Error Handling Middleware - Should be last
