@@ -293,7 +293,7 @@ export const Settings: React.FC = () => {
       </Card>
 
       {/* Data Management */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Download className="h-5 w-5" />
@@ -328,7 +328,7 @@ export const Settings: React.FC = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };

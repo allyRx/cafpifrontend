@@ -473,3 +473,43 @@ export const Results: React.FC = () => {
     </div>
   );
 };
+function useQuery<T>({
+  queryKey,
+  queryFn,
+  onSuccess,
+  onError,
+}: {
+  queryKey: string[];
+  queryFn: () => Promise<T>;
+  onSuccess: (data: T) => void;
+  onError: (error: any) => void;
+}): { data: T | undefined; isLoading: boolean } {
+  const [data, setData] = useState<T | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    queryFn()
+      .then((result) => {
+        if (isMounted) {
+          setData(result);
+          onSuccess(result);
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          onError(error);
+        }
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...queryKey]);
+
+  return { data, isLoading };
+}
