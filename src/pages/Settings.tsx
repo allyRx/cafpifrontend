@@ -316,7 +316,6 @@ export const Settings: React.FC = () => {
         </CardContent>
       </Card>
 
-
     </div>
   );
 };

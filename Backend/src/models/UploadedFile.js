@@ -17,6 +17,7 @@ const UploadedFileSchema = new Schema({
   size: { type: Number, required: true },
   status: { type: String, required: true, default: 'uploaded' },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  folderId: { type: Schema.Types.ObjectId, ref: 'Folder', required: true },
   content: { type: Buffer, required: true },
 });
 
