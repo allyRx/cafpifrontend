@@ -20,8 +20,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/use-toast';
-import { exportUserData, deleteUserAccount, changePassword } from '../services/userService';
-import { useMutation } from '@tanstack/react-query';
+import { exportUserData, deleteUserAccount, changePassword, updateUserProfile, getUserProfile } from '../services/userService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,8 +36,9 @@ import {
 } from '../components/ui/dialog';
 
 export const Settings: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [profile, setProfile] = useState({
     name: user?.name || '',
@@ -47,12 +48,35 @@ export const Settings: React.FC = () => {
     bio: 'Utilisateur de cafpi pour automatiser le traitement de documents.'
   });
 
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: getUserProfile,
+    onSuccess: (data) => {
+      setProfile(data);
+    }
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateUserProfile,
+    onSuccess: (data) => {
+      toast({
+        title: "Profil mis à jour",
+        description: "Vos informations personnelles ont été sauvegardées",
+      });
+      setUser(data);
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur de mise à jour",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSaveProfile = () => {
-    toast({
-      title: "Profil mis à jour",
-      description: "Vos informations personnelles ont été sauvegardées",
-    });
+    updateProfileMutation.mutate(profile);
   };
 
   const exportDataMutation = useMutation({
@@ -292,43 +316,7 @@ export const Settings: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Data Management */}
-      {/* <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Download className="h-5 w-5" />
-            <span>Gestion des données</span>
-          </CardTitle>
-          <CardDescription>
-            Exportez ou supprimez vos données
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <p className="font-medium mb-2">Exporter mes données</p>
-            <p className="text-sm text-gray-600 mb-4">
-              Téléchargez une copie de toutes vos données
-            </p>
-            <Button variant="outline" onClick={handleExportData}>
-              <Download className="mr-2 h-4 w-4" />
-              Exporter les données
-            </Button>
-          </div>
 
-          <Separator />
-
-          <div>
-            <p className="font-medium mb-2 text-red-600">Zone dangereuse</p>
-            <p className="text-sm text-gray-600 mb-4">
-              Supprimez définitivement votre compte et toutes vos données
-            </p>
-            <Button variant="destructive" onClick={handleDeleteAccount}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer mon compte
-            </Button>
-          </div>
-        </CardContent>
-      </Card> */}
     </div>
   );
 };

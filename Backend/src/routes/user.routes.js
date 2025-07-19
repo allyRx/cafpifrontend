@@ -28,7 +28,11 @@ router.post(
         return res.status(404).json({ msg: 'User not found' });
       }
 
+      console.log('Comparing passwords:');
+      console.log('Entered password:', currentPassword);
+      console.log('User password from DB:', user.password);
       const isMatch = await user.comparePassword(currentPassword);
+      console.log('Passwords match:', isMatch);
 
       if (!isMatch) {
         return res.status(400).json({ msg: 'Invalid credentials' });
@@ -84,6 +88,55 @@ router.delete('/', protect, async (req, res) => {
     await user.deleteOne();
 
     res.json({ msg: 'User account deleted successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   PUT api/user/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+  const { name, email, company, phone, bio } = req.body;
+  const userId = req.user?.id;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    user.name = name || user.name;
+    user.email = email || user.email;
+    // Assuming you add these fields to your User model
+    // user.company = company || user.company;
+    // user.phone = phone || user.phone;
+    // user.bio = bio || user.bio;
+
+    const updatedUser = await user.save();
+    res.json(updatedUser);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET api/user/profile
+// @desc    Get user profile
+// @access  Private
+router.get('/profile', protect, async (req, res) => {
+  const userId = req.user?.id;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    res.json(user);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
