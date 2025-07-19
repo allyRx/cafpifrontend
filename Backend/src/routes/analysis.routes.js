@@ -42,4 +42,49 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
+// @route   PUT api/analysis/:id
+// @desc    Update an analysis result
+// @access  Private
+router.put('/:id', protect, async (req, res) => {
+  const userId = req.user.id;
+  const { body } = req;
+
+  try {
+    let result = await AnalysisResult.findOne({ _id: req.params.id, userId });
+
+    if (!result) {
+      return res.status(404).json({ msg: 'Result not found or not authorized' });
+    }
+
+    result = await AnalysisResult.findByIdAndUpdate(req.params.id, { $set: body }, { new: true });
+
+    res.json(result);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   DELETE api/analysis/:id
+// @desc    Delete an analysis result
+// @access  Private
+router.delete('/:id', protect, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const result = await AnalysisResult.findOne({ _id: req.params.id, userId });
+
+    if (!result) {
+      return res.status(404).json({ msg: 'Result not found or not authorized' });
+    }
+
+    await result.deleteOne();
+
+    res.json({ msg: 'Result removed' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
