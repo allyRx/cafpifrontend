@@ -6,10 +6,7 @@ import {
   Folder, 
   Upload, 
   FileText, 
-  BarChart3, 
   Settings,
-  CreditCard,
-  HelpCircle
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
@@ -27,10 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     { icon: Folder, label: 'Mes dossiers', path: '/folders' },
     { icon: Upload, label: 'Téléversement', path: '/upload', requiresPremium: false },
     { icon: FileText, label: 'Résultats', path: '/results' },
-    { icon: BarChart3, label: 'Rapports', path: '/reports', requiresPremium: true },
-    { icon: CreditCard, label: 'Abonnement', path: '/subscription' },
     { icon: Settings, label: 'Paramètres', path: '/settings' },
-    { icon: HelpCircle, label: 'Aide', path: '/help' },
   ];
 
   const isFeatureAvailable = (requiresPremium: boolean) => {
