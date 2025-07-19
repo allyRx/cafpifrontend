@@ -29,7 +29,7 @@ export const LoginForm: React.FC = () => {
           <div className="flex items-center justify-center mb-4">
             <FileText className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">DocProcess AI</h1>
+          <h1 className="text-3xl font-bold text-gray-900">cafpi</h1>
           <p className="text-gray-600 mt-2">Automatisation de traitement documentaire</p>
         </div>
 

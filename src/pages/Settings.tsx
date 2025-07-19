@@ -44,7 +44,7 @@ export const Settings: React.FC = () => {
     email: user?.email || '',
     company: 'Mon Entreprise',
     phone: '+33 1 23 45 67 89',
-    bio: 'Utilisateur de DocProcess AI pour automatiser le traitement de documents.'
+    bio: 'Utilisateur de cafpi pour automatiser le traitement de documents.'
   });
 
 

@@ -9,35 +9,89 @@ import {
 } from '../components/ui/table';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { Eye } from 'lucide-react';
-import { getAnalysisResults } from '../services/analysisService';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { getAnalysisResults, updateAnalysisResult, deleteAnalysisResult } from '../services/analysisService';
 import { AnalysisResult } from '../types';
 import { useToast } from '../hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '../components/ui/dialog';
 
 export const Results: React.FC = () => {
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<AnalysisResult | null>(null);
+  const [editingResult, setEditingResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchResults = async () => {
-      try {
-        const data = await getAnalysisResults();
-        setResults(data);
-      } catch (error) {
-        toast({
-          title: 'Erreur de chargement des résultats',
-          description: (error as Error).message,
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const { data: fetchedResults, isLoading: isLoadingResults } = useQuery({
+    queryKey: ['analysisResults'],
+    queryFn: getAnalysisResults,
+    onSuccess: (data) => {
+      setResults(data);
+      setIsLoading(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur de chargement des résultats',
+        description: (error as Error).message,
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+    },
+  });
 
-    fetchResults();
-  }, [toast]);
+  const deleteMutation = useMutation({
+    mutationFn: deleteAnalysisResult,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analysisResults'] });
+      toast({
+        title: 'Résultat supprimé',
+        description: 'Le résultat a été supprimé avec succès.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur de suppression',
+        description: (error as Error).message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => updateAnalysisResult(editingResult!._id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analysisResults'] });
+      toast({
+        title: 'Résultat mis à jour',
+        description: 'Le résultat a été mis à jour avec succès.',
+      });
+      setEditingResult(null);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur de mise à jour',
+        description: (error as Error).message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
+  const handleUpdate = (data: any) => {
+    updateMutation.mutate(data);
+  };
 
   if (isLoading) {
     return <div>Chargement des résultats...</div>;
@@ -90,12 +144,48 @@ export const Results: React.FC = () => {
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setEditingResult(result)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                  </Dialog>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => handleDelete(result._id)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      {editingResult && (
+        <Dialog open={!!editingResult} onOpenChange={() => setEditingResult(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Modifier le résultat</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p>Modification en cours pour le fichier: {editingResult.metadata?.filename}</p>
+              {/* Add form fields here to edit the result */}
+            </div>
+            <DialogFooter>
+              <Button onClick={() => handleUpdate({})}>Sauvegarder</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {selectedResult && (
         <div className="mt-8 border rounded-lg p-6 bg-gray-50">
