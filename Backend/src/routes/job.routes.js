@@ -165,4 +165,42 @@ router.put('/:id', protect, async (req, res) => {
   }
 });
 
+// @route   GET api/jobs
+// @desc    Get all processing jobs for the authenticated user
+// @access  Private
+router.get('/', protect, async (req, res) => {
+  const userId = req.user?.id;
+  const { limit, sort } = req.query;
+
+  if (!userId) {
+    return res.status(401).json({ msg: 'User not authenticated' });
+  }
+
+  try {
+    let query = ProcessingJob.find().populate({
+      path: 'folderId',
+      match: { userId },
+      select: 'userId'
+    });
+
+    if (sort) {
+      const sortOptions = {};
+      const sortFields = sort.split(':');
+      sortOptions[sortFields[0]] = sortFields[1] === 'desc' ? -1 : 1;
+      query = query.sort(sortOptions);
+    }
+
+    if (limit) {
+      query = query.limit(parseInt(limit));
+    }
+
+    let jobs = await query;
+    jobs = jobs.filter(job => job.folderId);
+    res.json(jobs);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
