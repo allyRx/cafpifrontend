@@ -24,6 +24,11 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
   }
 
   const { originalname, mimetype, size, buffer } = req.file;
+  const { folderId } = req.body;
+
+  if (!folderId) {
+    return res.status(400).json({ msg: 'Folder ID is required' });
+  }
 
   try {
     const newUploadedFile = new UploadedFile({
@@ -32,6 +37,7 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
       size,
       content: buffer,
       userId,
+      folderId,
       status: 'uploaded',
     });
 

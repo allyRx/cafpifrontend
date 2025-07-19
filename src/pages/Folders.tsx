@@ -167,7 +167,7 @@ export const Folders: React.FC = () => {
                   <TableHead>Nom</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Fichiers</TableHead>
-                  
+                  <TableHead>Statut</TableHead>
                   <TableHead>Date de création</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
@@ -191,6 +191,9 @@ export const Folders: React.FC = () => {
                         <FileText className="h-3 w-3 text-muted-foreground" />
                         <span className="text-sm">{folder.fileCount}</span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(folder.status)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-1 text-sm text-muted-foreground">
