@@ -73,13 +73,6 @@ export const LoginForm: React.FC = () => {
                 Se connecter
               </Button>
             </form>
-            
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium mb-2">Compte de démonstration :</p>
-              <p className="text-sm text-blue-700">Email: demo@example.com</p>
-              <p className="text-sm text-blue-700">Mot de passe: demo123</p>
-            </div>
-
             <div className="mt-6 text-center text-sm">
               Don't have an account?{' '}
               <Link to="/register" className="font-medium text-primary hover:underline">
