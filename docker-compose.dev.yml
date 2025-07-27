@@ -23,8 +23,8 @@ services:
 
   frontend:
     build:
-      context: ../frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     image: myapp-frontend-dev
     container_name: myapp-frontend-dev
     restart: unless-stopped
