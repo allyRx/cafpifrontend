@@ -5,11 +5,13 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install --include=dev
 
 COPY . .
 
 RUN npm run build
+
+RUN npm prune --production
 
 # Stage 2: Production
 FROM nginx:stable-alpine
