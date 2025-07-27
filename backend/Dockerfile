@@ -23,7 +23,7 @@ USER appuser
 
 EXPOSE 5000
 
-CMD ["node", "index.js"]
+CMD ["node", "src/index.js"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget -q --tries=1 --spider http://localhost:5000/ || exit 1

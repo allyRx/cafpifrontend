@@ -8,6 +8,7 @@ This document provides instructions for setting up and running this application 
 - Docker Compose
 - Jenkins (for CI/CD)
 - A DNS record for your production domain pointing to your server's IP address.
+- You have your backend and frontend projects located in the parent directory of this project.
 
 ## Development Setup
 
