@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: myapp-backend-prod
+    container_name: myapp-backend-prod
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production
+    networks:
+      - app-network
+    depends_on:
+      - database
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: myapp-frontend-prod
+    container_name: myapp-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+  database:
+    image: mongo:6.0
+    container_name: myapp-database-prod
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
