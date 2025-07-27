@@ -16,7 +16,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 script {
-                    docker.build('myapp-backend-prod', './backend')
+                    docker.build('myapp-backend-prod', '-f backend/Dockerfile ../backend')
                 }
             }
         }
@@ -24,7 +24,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 script {
-                    docker.build('myapp-frontend-prod', './frontend')
+                    docker.build('myapp-frontend-prod', '-f frontend/Dockerfile ../frontend')
                 }
             }
         }

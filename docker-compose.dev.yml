@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     image: myapp-backend-dev
     container_name: myapp-backend-dev
@@ -11,7 +11,7 @@ services:
     env_file:
       - ./backend/.env.development
     volumes:
-      - ./backend:/usr/src/app
+      - ../backend:/usr/src/app
       - /usr/src/app/node_modules
     ports:
       - "5000:5000"
@@ -23,7 +23,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
     image: myapp-frontend-dev
     container_name: myapp-frontend-dev
@@ -31,7 +31,7 @@ services:
     env_file:
       - ./frontend/.env.frontend.development
     volumes:
-      - ./frontend:/usr/src/app
+      - ../frontend:/usr/src/app
       - /usr/src/app/node_modules
     ports:
       - "8080:8080"
